@@ -16,7 +16,7 @@ const checklistItems = {
     "Faróis Dianteiros", "Stop De Freio", "Sinal Sonoro (Buzina)",
     "Ré Sonoro", "Pneus estão em boas condições", "O SISTEMA DE ALIMENTAÇÃO (MANGUEIRAS E BOTIJÃO) APRESENTAM ALGUM ASPECTO OU ODOR QUE INDIQUE VAZAMENTO DE GÁS?",
     "O SISTEMA HIDRÁULICO (MANGUEIRAS E BOMBAS) APRESENTAM ALGUM ASPECTO QUE INDIQUE VAZAMENTO DE ÓLEO?", "Sistema de Frenagem", "Sistema de refrigeração do motor (radiador)",
-    "Operador utilizando EPIS", "Extintor com carga plena e no prazo de validade", "Cinto de segurança em boas condições?", "A torre, corrente e garfos estão em boas condições de uso?",
+    "Operador utilizando EPIS","Cinto de segurança em boas condições?", "A torre, corrente e garfos estão em boas condições de uso?",
     "Diante de todos os pontos observados, a empilhadeira está em condições de operar normalmente?", "Outros"
   ],
 
@@ -24,7 +24,7 @@ const checklistItems = {
     "Faróis Dianteiros", "Stop De Freio", "Sinal Sonoro (Buzina)",
     "Ré Sonoro", "Pneus estão em boas condições", "O sistema de alimentação de gás está ok?",
     "O SISTEMA HIDRÁULICO (MANGUEIRAS E BOMBAS) APRESENTAM ALGUM ASPECTO QUE INDIQUE VAZAMENTO DE ÓLEO?", "Sistema de Frenagem", "Sistema de refrigeração do motor (radiador)",
-    "Operador utilizando EPIS", "Extintor com carga plena e no prazo de validade", "Cinto de segurança em boas condições?", "A torre, corrente e garfos estão em boas condições de uso?",
+    "Operador utilizando EPIS", "Cinto de segurança em boas condições?", "A torre, corrente e garfos estão em boas condições de uso?",
     "Diante de todos os pontos observados, a empilhadeira está em condições de operar normalmente?", "Outros"
   ],
 
@@ -33,7 +33,7 @@ const checklistItems = {
     "Ré Sonoro", "Pneus estão em boas condições",
     "Carga da bateria suficiente para operação?", "Cabos, conexões e plugs em bom estado?",
     "Sistema de Frenagem", "Sistema de refrigeração do motor (Ventoinha)",
-    "Operador utilizando EPIS", "Extintor com carga plena e no prazo de validade", "Cinto de segurança em boas condições?", "A torre, corrente e garfos estão em boas condições de uso?",
+    "Operador utilizando EPIS","Cinto de segurança em boas condições?", "A torre, corrente e garfos estão em boas condições de uso?",
     "Diante de todos os pontos observados, a empilhadeira está em condições de operar normalmente?", "Outros"
   ],
 
