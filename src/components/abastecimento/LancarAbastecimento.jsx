@@ -269,13 +269,13 @@ export default function LancarAbastecimento({
   }
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
-        <button type="button" className="btn-voltar" onClick={() => navigate("/")}>
+    <div className="rounded-2xl border border-white/10 bg-[#161a24] p-5 shadow-lg ring-1 ring-white/5">
+      <div>
+        <button type="button" className="mb-4 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-300 hover:bg-white/10" onClick={() => navigate("/")}>
           ← Voltar
         </button>
 
-        <h5 className="card-title fw-bold">
+        <h5 className="mb-4 text-xl font-bold text-sky-400">
           {publicMode ? "Lançar Abastecimento" : "Novo Abastecimento"}
         </h5>
 
@@ -283,9 +283,9 @@ export default function LancarAbastecimento({
           {/* Frota */}
           {!lockFrota ? (
             <div className="mb-3">
-              <label className="form-label">Frota</label>
+              <label className="mb-1 block text-xs text-slate-400">Frota</label>
               <select
-                className="form-select"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={tipoFrota}
                 onChange={(e) => setTipoFrota(e.target.value)}
               >
@@ -296,8 +296,8 @@ export default function LancarAbastecimento({
             </div>
           ) : (
             <div className="mb-3">
-              <label className="form-label d-block">Frota</label>
-              <span className="badge bg-secondary text-uppercase">
+              <label className="mb-1 block text-xs text-slate-400">Frota</label>
+              <span className="rounded-lg bg-slate-500/20 px-2 py-0.5 text-xs font-semibold uppercase text-slate-300">
                 {tipoFrota || defaultFrotaProp}
               </span>
             </div>
@@ -306,9 +306,9 @@ export default function LancarAbastecimento({
           {/* Busca veículo */}
           {!hideSearch && (
             <div className="mb-2">
-              <label className="form-label">Pesquisar veículo (placa ou Nº frota)</label>
+              <label className="mb-1 block text-xs text-slate-400">Pesquisar veículo (placa ou Nº frota)</label>
               <input
-                className="form-control"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 placeholder="Ex.: ABC1D23 ou 016"
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
@@ -319,9 +319,9 @@ export default function LancarAbastecimento({
 
           {/* Veículo */}
           <div className="mb-3">
-            <label className="form-label">Veículo</label>
+            <label className="mb-1 block text-xs text-slate-400">Veículo</label>
             <select
-              className="form-select"
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               value={veiculoId}
               onChange={(e) => setVeiculoId(e.target.value)}
               disabled={!tipoFrota}
@@ -336,11 +336,11 @@ export default function LancarAbastecimento({
           </div>
 
           {/* Campos abastecimento */}
-          <div className="row g-3">
-            <div className="col-md-4">
-              <label className="form-label">Combustível</label>
+          <div className="grid gap-3 md:grid-cols-12">
+            <div className="md:col-span-4">
+              <label className="mb-1 block text-xs text-slate-400">Combustível</label>
               <select
-                className="form-select"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={tipoCombustivel}
                 onChange={(e) => setTipoCombustivel(e.target.value)}
               >
@@ -351,11 +351,11 @@ export default function LancarAbastecimento({
               </select>
             </div>
 
-            <div className="col-md-4">
-              <label className="form-label">Litros</label>
+            <div className="md:col-span-4">
+              <label className="mb-1 block text-xs text-slate-400">Litros</label>
               <input
                 type="number"
-                className="form-control"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={litros}
                 onChange={(e) => setLitros(e.target.value)}
                 min="0"
@@ -363,11 +363,11 @@ export default function LancarAbastecimento({
               />
             </div>
 
-            <div className="col-md-4">
-              <label className="form-label">Preço por litro</label>
+            <div className="md:col-span-4">
+              <label className="mb-1 block text-xs text-slate-400">Preço por litro</label>
               <input
                 type="number"
-                className="form-control"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={precoPorLitro}
                 onChange={(e) => setPrecoPorLitro(e.target.value)}
                 min="0"
@@ -375,39 +375,39 @@ export default function LancarAbastecimento({
               />
             </div>
 
-            <div className="col-md-4">
-              <label className="form-label">KM Atual</label>
+            <div className="md:col-span-4">
+              <label className="mb-1 block text-xs text-slate-400">KM Atual</label>
               <input
                 type="number"
-                className="form-control"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={kmAtual}
                 onChange={(e) => setKmAtual(e.target.value)}
                 placeholder="km"
               />
               {ultimoKm != null && (
-                <div className="form-text">Último KM conhecido: {ultimoKm}</div>
+                <div className="mt-1 text-xs text-slate-500">Último KM conhecido: {ultimoKm}</div>
               )}
             </div>
 
-            <div className="col-md-4">
-              <label className="form-label">KM/L (auto)</label>
-              <input type="text" className="form-control" value={kmPorLitro} readOnly />
+            <div className="md:col-span-4">
+              <label className="mb-1 block text-xs text-slate-400">KM/L (auto)</label>
+              <input type="text" className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-300" value={kmPorLitro} readOnly />
             </div>
 
-            <div className="col-md-4">
-              <label className="form-label">Data do abastecimento</label>
+            <div className="md:col-span-4">
+              <label className="mb-1 block text-xs text-slate-400">Data do abastecimento</label>
               <input
                 type="date"
-                className="form-control"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={data}
                 onChange={(e) => setData(e.target.value)}
               />
             </div>
 
-            <div className="col-md-6">
-              <label className="form-label">Posto</label>
+            <div className="md:col-span-6">
+              <label className="mb-1 block text-xs text-slate-400">Posto</label>
               <input
-                className="form-control"
+                className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 value={posto}
                 onChange={(e) => setPosto(e.target.value)}
               />
@@ -416,19 +416,19 @@ export default function LancarAbastecimento({
 
           {/* Upload de imagem */}
           <div className="mb-3 mt-3">
-            <label className="form-label">Upload de Imagem (até 10MB)</label>
+            <label className="mb-1 block text-xs text-slate-400">Upload de Imagem (até 10MB)</label>
             <input
               type="file"
-              className="form-control"
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 file:mr-3 file:rounded-lg file:border-0 file:bg-sky-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white hover:file:bg-sky-500"
               accept="image/*,application/pdf"
               onChange={handleImageChange}
             />
           </div>
 
-          <button className="btn btn-primary mt-3" type="submit" disabled={saving}>
+          <button className="mt-3 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50" type="submit" disabled={saving}>
             {saving ? "Salvando..." : "Lançar"}
           </button>
-          {msg && <div className="mt-3">{msg}</div>}
+          {msg && <div className="mt-3 text-sm text-slate-300">{msg}</div>}
         </form>
       </div>
     </div>

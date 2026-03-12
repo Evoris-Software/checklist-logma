@@ -684,190 +684,167 @@ export default function Manutencao({ user }) {
   const totalAlertasEmp = avisosEmp.filter(a => a.faltamDias <= 15 && !a.suprimido).length;
 
   return (
-    <div className="min-vh-100 bg-dark text-light py-4 px-2 d-flex flex-column align-items-center">
-      <div className="w-100" style={{ maxWidth: 1100 }}>
-        {/* Voltar */}
+    <div className="flex min-h-screen flex-col items-center bg-[#0b0d12] px-4 py-6 text-slate-100">
+      <div className="w-full max-w-5xl">
         <button
           type="button"
-          className="btn-voltar"
+          className="mb-4 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-300 hover:bg-white/10"
           onClick={() => navigate("/")}
         >
           ← Voltar
         </button>
-        <h2 className="fw-bold mb-4 text-center text-white">Painel de Manutenções</h2>
+        <h2 className="mb-6 text-center text-2xl font-bold text-white">Painel de Manutenções</h2>
 
-        {/* Painel de AVISOS - ÓLEO (KM) */}
-        <div className="mb-4">
-          <div className="card border-0 shadow" style={{ background: "#1f2430", color: "#e6eef5" }}>
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <h5 className="card-title m-0 fw-bold">
-                  Avisos de Troca de Óleo (≤ 500 km)
-                </h5>
-                <span className={`badge ${avisos.length ? "bg-danger" : "bg-secondary"}`}>
-                  {avisos.length}
-                </span>
+        <div className="mb-4 rounded-2xl border border-white/10 bg-[#161a24] p-4 shadow-lg ring-1 ring-white/5">
+          <div className="flex items-center justify-between">
+            <h5 className="font-bold text-slate-200">Avisos de Troca de Óleo (≤ 500 km)</h5>
+            <span className={`rounded-lg px-2 py-0.5 text-sm font-semibold ${avisos.length ? "bg-red-500/20 text-red-400" : "bg-slate-500/20 text-slate-300"}`}>
+              {avisos.length}
+            </span>
+          </div>
+
+          <div className="mt-3">
+            {contentShouldPulse ? (
+              <div className="space-y-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
+                ))}
               </div>
+            ) : avisos.length === 0 ? (
+              <div className="text-slate-500">Nenhum aviso no momento.</div>
+            ) : (
+              <ul className="space-y-1">
+                {avisos.map((a, i) => {
+                  const oilBadge =
+                    a.tipoOleo === "motor" ? "bg-red-500/20 text-red-400" :
+                    a.tipoOleo === "diferencial" ? "bg-cyan-500/20 text-cyan-400" :
+                    "bg-amber-500/20 text-amber-400";
 
-              <div className="mt-3">
-                {contentShouldPulse ? (
-                  <div>
-                    {[...Array(4)].map((_, i) => (
-                      <div key={i} className="placeholder-glow mb-2">
-                        <span className="placeholder col-7"></span>
-                        <span className="placeholder col-4 ms-2"></span>
-                      </div>
-                    ))}
-                  </div>
-                ) : avisos.length === 0 ? (
-                  <div className="text-secondary">Nenhum aviso no momento.</div>
+                  const sever =
+                    a.kmFaltante <= 100 ? "text-red-400 font-bold" : "text-amber-400";
+
+                  return (
+                    <li key={a.placa + "_" + a.tipoOleo + "_" + i}>
+                      <span className={`mr-2 rounded-lg px-2 py-0.5 text-xs font-semibold ${oilBadge}`}>
+                        {a.tipoOleo === "motor"
+                          ? "Óleo do Motor"
+                          : a.tipoOleo === "diferencial"
+                          ? "Óleo do Diferencial"
+                          : "Óleo da Caixa"}
+                      </span>
+                      <b>{a.placa}</b>{" "}
+                      <span className={sever}>— faltam {a.kmFaltante} km</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          <div className="mt-2 text-xs text-slate-500">
+            * Para remover da lista, conclua ou vincule a manutenção para a placa.
+          </div>
+        </div>
+
+        <div className="mb-4 rounded-2xl border border-white/10 bg-[#161a24] p-4 shadow-lg ring-1 ring-white/5">
+          <div className="flex items-center justify-between">
+            <h5 className="font-bold text-slate-200">Avisos de Manutenção — Empilhadeiras (≤ 15 dias)</h5>
+            <span className={`rounded-lg px-2 py-0.5 text-sm font-semibold ${totalAlertasEmp ? "bg-amber-500/20 text-amber-400" : "bg-slate-500/20 text-slate-300"}`}>
+              {totalAlertasEmp}
+            </span>
+          </div>
+
+          <div className="mt-3">
+            {contentShouldPulse ? (
+              <div className="space-y-2">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="h-4 w-1/2 animate-pulse rounded bg-white/10" />
+                ))}
+              </div>
+            ) : (
+              (() => {
+                const itens = avisosEmp.filter(a => a.faltamDias <= 15 && !a.suprimido);
+                return itens.length === 0 ? (
+                  <div className="text-slate-500">Nenhum aviso por tempo no momento.</div>
                 ) : (
-                  <ul className="mb-0">
-                    {avisos.map((a, i) => {
-                      const oilBadge =
-                        a.tipoOleo === "motor" ? "bg-danger" :
-                        a.tipoOleo === "diferencial" ? "bg-info text-dark" :
-                        "bg-warning text-dark";
-
-                      const sever =
-                        a.kmFaltante <= 100 ? "text-danger fw-bold" : "text-warning";
+                  <ul className="space-y-1">
+                    {itens.map((av, i) => {
+                      const tipoBadge = av.tipoEmp === "gas" ? "bg-sky-500/20 text-sky-400" : "bg-emerald-500/20 text-emerald-400";
+                      const textoClasse = av.faltamDias <= 15 ? "text-red-400 font-bold" : "text-slate-500";
+                      const quando =
+                        av.faltamDias < 0
+                          ? `vencida há ${Math.abs(av.faltamDias)} ${Math.abs(av.faltamDias) === 1 ? "dia" : "dias"}`
+                          : av.faltamDias === 0
+                          ? "é hoje"
+                          : `faltam ${av.faltamDias} ${av.faltamDias === 1 ? "dia" : "dias"}`;
 
                       return (
-                        <li key={a.placa + "_" + a.tipoOleo + "_" + i} className="mb-1">
-                          <span className={`badge ${oilBadge} me-2`}>
-                            {a.tipoOleo === "motor"
-                              ? "Óleo do Motor"
-                              : a.tipoOleo === "diferencial"
-                              ? "Óleo do Diferencial"
-                              : "Óleo da Caixa"}
+                        <li key={`${av.empId}_${av.manutKey}_${i}`}>
+                          <span className={`mr-2 rounded-lg px-2 py-0.5 text-xs font-semibold ${tipoBadge}`}>
+                            {av.tipoEmp === "gas" ? "Gás" : "Elétrica"}
                           </span>
-                          <b>{a.placa}</b>{" "}
-                          <span className={sever}>
-                            — faltam {a.kmFaltante} km
-                          </span>
+                          <b>{av.nomeEmp}</b>{" "}
+                          <span className="ml-2 rounded-lg bg-cyan-500/20 px-2 py-0.5 text-xs font-semibold text-cyan-400">{av.label}</span>{" "}
+                          — próxima em <b>{av.proxima.toLocaleDateString("pt-BR")}</b>{" "}
+                          <span className={textoClasse}>({quando})</span>
                         </li>
                       );
                     })}
                   </ul>
-                )}
-              </div>
+                );
+              })()
+            )}
+          </div>
 
-              <div className="small mt-2" style={{ opacity: .85 }}>
-                * Para remover da lista, conclua ou vincule a manutenção para a placa.
-              </div>
-            </div>
+          <div className="mt-2 text-xs text-slate-500">
+            * Ao incluir uma manutenção vinculando esse aviso, o contador é reiniciado para a data atual.
           </div>
         </div>
 
-        {/* Painel de AVISOS - EMPILHADEIRAS (TEMPO + DATA PREVISTA) */}
-        <div className="mb-4">
-          <div className="card border-0 shadow" style={{ background: "#1f2430", color: "#e6eef5" }}>
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between">
-                <h5 className="card-title m-0 fw-bold">
-                  Avisos de Manutenção — Empilhadeiras (≤ 15 dias)
-                </h5>
-                <span className={`badge ${totalAlertasEmp ? "bg-warning text-dark" : "bg-secondary"}`}>
-                  {totalAlertasEmp}
-                </span>
-              </div>
-
-              <div className="mt-3">
-                {contentShouldPulse ? (
-                  <div>
-                    {[...Array(3)].map((_, i) => (
-                      <div key={i} className="placeholder-glow mb-2">
-                        <span className="placeholder col-6"></span>
-                        <span className="placeholder col-3 ms-2"></span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  (() => {
-                    const itens = avisosEmp.filter(a => a.faltamDias <= 15 && !a.suprimido);
-                    return itens.length === 0 ? (
-                      <div className="text-secondary">Nenhum aviso por tempo no momento.</div>
-                    ) : (
-                      <ul className="mb-0">
-                        {itens.map((av, i) => {
-                          const tipoBadge = av.tipoEmp === "gas" ? "bg-primary" : "bg-success";
-                          const textoClasse =
-                            av.faltamDias <= 15 ? "text-danger fw-bold" : "text-secondary";
-                          const quando =
-                            av.faltamDias < 0
-                              ? `vencida há ${Math.abs(av.faltamDias)} ${Math.abs(av.faltamDias) === 1 ? "dia" : "dias"}`
-                              : av.faltamDias === 0
-                              ? "é hoje"
-                              : `faltam ${av.faltamDias} ${av.faltamDias === 1 ? "dia" : "dias"}`;
-
-                          return (
-                            <li key={`${av.empId}_${av.manutKey}_${i}`} className="mb-1">
-                              <span className={`badge ${tipoBadge} me-2`}>
-                                {av.tipoEmp === "gas" ? "Gás" : "Elétrica"}
-                              </span>
-                              <b>{av.nomeEmp}</b>{" "}
-                              <span className="badge bg-info text-dark ms-2">{av.label}</span>{" "}
-                              — próxima em <b>{av.proxima.toLocaleDateString("pt-BR")}</b>{" "}
-                              <span className={textoClasse}>
-                                ({quando})
-                              </span>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    );
-                  })()
-                )}
-              </div>
-
-              <div className="small mt-2" style={{ opacity: .85 }}>
-                * Ao incluir uma manutenção vinculando esse aviso, o contador é reiniciado para a data atual.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Botão novo */}
-        <div className="text-center mb-4">
+        <div className="mb-4 text-center">
           <button
-            className="btn btn-success px-4 fw-bold"
+            className="rounded-xl bg-emerald-600 px-4 py-2 font-bold text-white hover:bg-emerald-500"
             onClick={() => setShowModal(true)}
           >
             + Incluir nova manutenção
           </button>
         </div>
 
-        {/* Contadores */}
-        <div className="d-flex gap-3 justify-content-center mb-4">
-          <span className="badge bg-danger fs-6">Abertos: {manutencoesFiltradas.filter(m => m.status === "aberta" && (!m.dataPrevista || new Date(m.dataPrevista) <= hoje)).length}</span>
-          <span className="badge bg-warning text-dark fs-6">Pendentes: {manutencoesFiltradas.filter(m => m.status === "pendente" || (m.status === "aberta" && m.dataPrevista && new Date(m.dataPrevista) > hoje)).length}</span>
-          <span className="badge bg-success fs-6">Concluídos: {manutencoesFiltradas.filter(m => m.status === "concluida").length}</span>
+        <div className="mb-4 flex flex-wrap justify-center gap-2">
+          <span className="rounded-lg bg-red-500/20 px-3 py-1 text-sm font-semibold text-red-400">
+            Abertos: {manutencoesFiltradas.filter(m => m.status === "aberta" && (!m.dataPrevista || new Date(m.dataPrevista) <= hoje)).length}
+          </span>
+          <span className="rounded-lg bg-amber-500/20 px-3 py-1 text-sm font-semibold text-amber-400">
+            Pendentes: {manutencoesFiltradas.filter(m => m.status === "pendente" || (m.status === "aberta" && m.dataPrevista && new Date(m.dataPrevista) > hoje)).length}
+          </span>
+          <span className="rounded-lg bg-emerald-500/20 px-3 py-1 text-sm font-semibold text-emerald-400">
+            Concluídos: {manutencoesFiltradas.filter(m => m.status === "concluida").length}
+          </span>
         </div>
 
-        {/* Filtros */}
-        <div className="row g-2 mb-3 justify-content-center">
-          <div className="col-md-3">
-            <label className="form-label mb-1">Data Início</label>
+        <div className="mb-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div>
+            <label className="mb-1 block text-xs text-slate-400">Data Início</label>
             <input
               type="date"
-              className="form-control"
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               value={dataInicio}
               onChange={e => setDataInicio(e.target.value)}
             />
           </div>
-          <div className="col-md-3">
-            <label className="form-label mb-1">Data Fim</label>
+          <div>
+            <label className="mb-1 block text-xs text-slate-400">Data Fim</label>
             <input
               type="date"
-              className="form-control"
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               value={dataFim}
               onChange={e => setDataFim(e.target.value)}
             />
           </div>
-          <div className="col-md-3">
-            <label className="form-label mb-1">Veículo/Equipamento</label>
+          <div>
+            <label className="mb-1 block text-xs text-slate-400">Veículo/Equipamento</label>
             <select
-              className="form-select"
+              className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               value={veiculoFiltro}
               onChange={e => setVeiculoFiltro(e.target.value)}
             >
@@ -886,132 +863,112 @@ export default function Manutencao({ user }) {
           </div>
         </div>
 
-        {/* Abas */}
-        <ul className="nav nav-tabs mb-3 justify-content-center">
-          <li className="nav-item">
-            <button
-              className={`nav-link fw-bold ${aba === "abertas" ? "active" : ""}`}
-              onClick={() => setAba("abertas")}
-            >
-              Em aberto
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link fw-bold ${aba === "pendentes" ? "active" : ""}`}
-              onClick={() => setAba("pendentes")}
-            >
-              Pendentes
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link fw-bold ${aba === "concluidas" ? "active" : ""}`}
-              onClick={() => setAba("concluidas")}
-            >
-              Concluídas
-            </button>
-          </li>
-        </ul>
+        <div className="mb-4 flex flex-wrap justify-center gap-2">
+          <button
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${aba === "abertas" ? "bg-red-500/20 text-red-400 ring-1 ring-red-500/40" : "bg-white/5 text-slate-300 hover:bg-white/10"}`}
+            onClick={() => setAba("abertas")}
+          >
+            Em aberto
+          </button>
+          <button
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${aba === "pendentes" ? "bg-amber-500/20 text-amber-400 ring-1 ring-amber-500/40" : "bg-white/5 text-slate-300 hover:bg-white/10"}`}
+            onClick={() => setAba("pendentes")}
+          >
+            Pendentes
+          </button>
+          <button
+            className={`rounded-xl px-4 py-2 text-sm font-semibold ${aba === "concluidas" ? "bg-emerald-500/20 text-emerald-400 ring-1 ring-emerald-500/40" : "bg-white/5 text-slate-300 hover:bg-white/10"}`}
+            onClick={() => setAba("concluidas")}
+          >
+            Concluídas
+          </button>
+        </div>
 
-        {/* Listas */}
-        <div className="card bg-light text-dark shadow border-0 mb-5">
-          <div className="card-body">
-            {contentShouldPulse ? (
-              <div>
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="placeholder-glow mb-3">
-                    <div className="placeholder col-9 mb-2"></div>
-                    <div className="placeholder col-6"></div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <>
-                {/* ABERTAS */}
-                {aba === "abertas" && (
-                  <>
-                    <h5 className="mb-3 fw-bold text-danger">Manutenções em aberto</h5>
-                    {abertas.length === 0 ? (
-                      <div className="text-secondary text-center">Nenhuma manutenção em aberto.</div>
-                    ) : (
-                      abertas.map(m => (
-                        <div key={m.id} className="mb-3 p-3 bg-white rounded shadow-sm d-flex justify-content-between align-items-center">
-                          <div>
-                            <b>{m.tipo?.toUpperCase()}</b> - <span className="fw-bold">{m.veiculoNome}</span>{" "}
-                            <span className="badge bg-secondary ms-2">{m.equipamentoTipo || "veículo"} </span>
-                            <div className="small text-secondary">
-                              {m.problemaVinculado ? `Origem: ${m.problemaVinculado}` : ""}
-                            </div>
-                            <div className="small text-secondary">{formatDate(m.dataHora)}</div>
-                            <div className="text-dark">{m.descricao}</div>
-                          </div>
-                          <button className="btn btn-success btn-sm fw-bold" onClick={() => concluirManutencao(m.id)}>
-                            Marcar como concluída
-                          </button>
+        <div className="mb-6 rounded-2xl border border-white/10 bg-[#161a24] p-4 shadow-lg ring-1 ring-white/5">
+          {contentShouldPulse ? (
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="h-4 w-2/3 animate-pulse rounded bg-white/10" />
+                  <div className="h-3 w-1/2 animate-pulse rounded bg-white/10" />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <>
+              {aba === "abertas" && (
+                <>
+                  <h5 className="mb-3 font-bold text-red-400">Manutenções em aberto</h5>
+                  {abertas.length === 0 ? (
+                    <div className="text-center text-slate-500">Nenhuma manutenção em aberto.</div>
+                  ) : (
+                    abertas.map(m => (
+                      <div key={m.id} className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                        <div>
+                          <b>{m.tipo?.toUpperCase()}</b> - <span className="font-bold">{m.veiculoNome}</span>{" "}
+                          <span className="ml-2 rounded-lg bg-slate-500/20 px-2 py-0.5 text-xs text-slate-300">{m.equipamentoTipo || "veículo"}</span>
+                          <div className="text-xs text-slate-500">{m.problemaVinculado ? `Origem: ${m.problemaVinculado}` : ""}</div>
+                          <div className="text-xs text-slate-500">{formatDate(m.dataHora)}</div>
+                          <div className="text-slate-200">{m.descricao}</div>
                         </div>
-                      ))
-                    )}
-                  </>
-                )}
+                        <button className="rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-500" onClick={() => concluirManutencao(m.id)}>
+                          Marcar como concluída
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
 
-                {/* PENDENTES */}
-                {aba === "pendentes" && (
-                  <>
-                    <h5 className="mb-3 fw-bold text-warning">Manutenções Pendentes (agendadas)</h5>
-                    {pendentes.length === 0 ? (
-                      <div className="text-secondary text-center">Nenhuma manutenção pendente/agendada.</div>
-                    ) : (
-                      pendentes.map(m => (
-                        <div key={m.id} className="mb-3 p-3 bg-white rounded shadow-sm d-flex justify-content-between align-items-center">
-                          <div>
-                            <b>{m.tipo?.toUpperCase()}</b> - <span className="fw-bold">{m.veiculoNome}</span>{" "}
-                            <span className="badge bg-secondary ms-2">{m.equipamentoTipo || "veículo"}</span>
-                            <div className="small text-secondary">
-                              {m.problemaVinculado ? `Origem: ${m.problemaVinculado}` : ""}
-                            </div>
-                            <div className="small text-secondary">{formatDate(m.dataPrevista)}</div>
-                            <div className="text-dark">{m.descricao}</div>
-                          </div>
-                          <button className="btn btn-success btn-sm fw-bold" onClick={() => concluirManutencao(m.id)}>
-                            Marcar como concluída
-                          </button>
+              {aba === "pendentes" && (
+                <>
+                  <h5 className="mb-3 font-bold text-amber-400">Manutenções Pendentes (agendadas)</h5>
+                  {pendentes.length === 0 ? (
+                    <div className="text-center text-slate-500">Nenhuma manutenção pendente/agendada.</div>
+                  ) : (
+                    pendentes.map(m => (
+                      <div key={m.id} className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                        <div>
+                          <b>{m.tipo?.toUpperCase()}</b> - <span className="font-bold">{m.veiculoNome}</span>{" "}
+                          <span className="ml-2 rounded-lg bg-slate-500/20 px-2 py-0.5 text-xs text-slate-300">{m.equipamentoTipo || "veículo"}</span>
+                          <div className="text-xs text-slate-500">{m.problemaVinculado ? `Origem: ${m.problemaVinculado}` : ""}</div>
+                          <div className="text-xs text-slate-500">{formatDate(m.dataPrevista)}</div>
+                          <div className="text-slate-200">{m.descricao}</div>
                         </div>
-                      ))
-                    )}
-                  </>
-                )}
+                        <button className="rounded-xl bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-emerald-500" onClick={() => concluirManutencao(m.id)}>
+                          Marcar como concluída
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
 
-                {/* CONCLUÍDAS */}
-                {aba === "concluidas" && (
-                  <>
-                    <h5 className="mb-3 fw-bold text-success">Manutenções concluídas</h5>
-                    {concluidas.length === 0 ? (
-                      <div className="text-secondary text-center">Nenhuma manutenção concluída.</div>
-                    ) : (
-                      concluidas.map(m => (
-                        <div key={m.id} className="mb-3 p-3 bg-white rounded shadow-sm">
-                          <b>{m.tipo?.toUpperCase()}</b> - <span className="fw-bold">{m.veiculoNome}</span>{" "}
-                          <span className="badge bg-secondary ms-2">{m.equipamentoTipo || "veículo"}</span>
-                          <div className="small text-secondary">
-                            {m.problemaVinculado ? `Origem: ${m.problemaVinculado}` : ""}
-                          </div>
-                          <div className="small text-secondary">
-                            Criada: {formatDate(m.dataHora)} {m.dataConclusao ? `— Concluída: ${formatDate(m.dataConclusao)}` : ""}
-                          </div>
-                          <div className="text-dark">{m.descricao}</div>
+              {aba === "concluidas" && (
+                <>
+                  <h5 className="mb-3 font-bold text-emerald-400">Manutenções concluídas</h5>
+                  {concluidas.length === 0 ? (
+                    <div className="text-center text-slate-500">Nenhuma manutenção concluída.</div>
+                  ) : (
+                    concluidas.map(m => (
+                      <div key={m.id} className="mb-3 rounded-xl border border-white/10 bg-black/20 p-3">
+                        <b>{m.tipo?.toUpperCase()}</b> - <span className="font-bold">{m.veiculoNome}</span>{" "}
+                        <span className="ml-2 rounded-lg bg-slate-500/20 px-2 py-0.5 text-xs text-slate-300">{m.equipamentoTipo || "veículo"}</span>
+                        <div className="text-xs text-slate-500">{m.problemaVinculado ? `Origem: ${m.problemaVinculado}` : ""}</div>
+                        <div className="text-xs text-slate-500">
+                          Criada: {formatDate(m.dataHora)} {m.dataConclusao ? `— Concluída: ${formatDate(m.dataConclusao)}` : ""}
                         </div>
-                      ))
-                    )}
-                  </>
-                )}
-              </>
-            )}
-          </div>
+                        <div className="text-slate-200">{m.descricao}</div>
+                      </div>
+                    ))
+                  )}
+                </>
+              )}
+            </>
+          )}
         </div>
       </div>
 
-      {/* Modal via Portal (custom, sem classes JS do Bootstrap) */}
       {showModal && createPortal(
         <div
           role="dialog"
@@ -1019,178 +976,158 @@ export default function Manutencao({ user }) {
           onMouseDown={(e) => {
             if (e.target === e.currentTarget) setShowModal(false);
           }}
-          style={{
-            position: "fixed",
-            inset: 0,
-            backgroundColor: "rgba(0,0,0,0.55)",
-            zIndex: 1050,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            animation: "cmFadeIn 120ms ease-out"
-          }}
+          className="fixed inset-0 z-[1050] flex items-center justify-center bg-black/60 p-4"
         >
           <div
-            style={{
-              width: "100%",
-              maxWidth: 480,
-              background: "#fff",
-              borderRadius: 16,
-              boxShadow: "0 10px 30px rgba(0,0,0,.25)",
-              overflow: "hidden",
-              transform: "translateY(0)",
-              animation: "cmSlideUp 140ms ease-out"
-            }}
+            className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#161a24] shadow-xl"
             onMouseDown={(e) => e.stopPropagation()}
           >
             <form onSubmit={handleAdicionarManutencao}>
-  {/* Cabeçalho */}
-  <div className="modal-header border-0 pb-0 px-4 pt-4">
-    <h5 className="modal-title fw-bold text-primary">Nova Manutenção</h5>
-    <button
-      type="button"
-      className="btn-close"
-      onClick={() => setShowModal(false)}
-    />
-  </div>
+              <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                <h5 className="font-bold text-sky-400">Nova Manutenção</h5>
+                <button
+                  type="button"
+                  className="rounded-lg p-1 text-slate-400 hover:bg-white/10"
+                  onClick={() => setShowModal(false)}
+                >
+                  ×
+                </button>
+              </div>
 
-  {/* Corpo */}
-  <div className="modal-body px-4 text-dark">
-    <div className="mb-3">
-      <label className="form-label">Tipo</label>
-      <select
-        className="form-select"
-        required
-        value={tipo}
-        onChange={(e) => setTipo(e.target.value)}
-      >
-        <option value="">Selecione...</option>
-        <option value="preventiva">Preventiva</option>
-        <option value="corretiva">Corretiva</option>
-        <option value="preditiva">Preditiva</option>
-      </select>
-    </div>
+              <div className="space-y-3 px-4 py-4">
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">Tipo</label>
+                  <select
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    required
+                    value={tipo}
+                    onChange={(e) => setTipo(e.target.value)}
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="preventiva">Preventiva</option>
+                    <option value="corretiva">Corretiva</option>
+                    <option value="preditiva">Preditiva</option>
+                  </select>
+                </div>
 
-    <div className="mb-3">
-      <label className="form-label">Equipamento</label>
-      <select
-        className="form-select"
-        required
-        value={equipamentoTipo}
-        onChange={(e) => setEquipamentoTipo(e.target.value)}
-      >
-        <option value="">Selecione...</option>
-        <option value="veiculo">Veículo</option>
-        <option value="empilhadeira">Empilhadeira</option>
-        <option value="paleteira">Paleteira</option>
-        <option value="gerador">Gerador</option>
-      </select>
-    </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">Equipamento</label>
+                  <select
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    required
+                    value={equipamentoTipo}
+                    onChange={(e) => setEquipamentoTipo(e.target.value)}
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="veiculo">Veículo</option>
+                    <option value="empilhadeira">Empilhadeira</option>
+                    <option value="paleteira">Paleteira</option>
+                    <option value="gerador">Gerador</option>
+                  </select>
+                </div>
 
-    <div className="mb-3">
-      <label className="form-label">Selecionar</label>
-      <select
-        className="form-select"
-        required
-        value={equipamentoTipo === "veiculo" ? selectedVeiculoId : veiculoNome}
-        onChange={(e) => {
-          if (equipamentoTipo === "veiculo") {
-            const id = e.target.value;
-            setSelectedVeiculoId(id);
-            const v = listaEquipamentos.find((x) => x.id === id);
-            setVeiculoNome(v ? v.displayLabel : "");
-          } else {
-            setVeiculoNome(e.target.value);
-          }
-        }}
-      >
-        <option value="">
-          {`Selecione o ${equipamentoTipo || "equipamento"}`}
-        </option>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">Selecionar</label>
+                  <select
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    required
+                    value={equipamentoTipo === "veiculo" ? selectedVeiculoId : veiculoNome}
+                    onChange={(e) => {
+                      if (equipamentoTipo === "veiculo") {
+                        const id = e.target.value;
+                        setSelectedVeiculoId(id);
+                        const v = listaEquipamentos.find((x) => x.id === id);
+                        setVeiculoNome(v ? v.displayLabel : "");
+                      } else {
+                        setVeiculoNome(e.target.value);
+                      }
+                    }}
+                  >
+                    <option value="">
+                      {`Selecione o ${equipamentoTipo || "equipamento"}`}
+                    </option>
 
-        {listaOptions.map((opt, idx) =>
-          equipamentoTipo === "veiculo" ? (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ) : (
-            <option key={opt.value + "_" + idx} value={opt.value}>
-              {opt.label}
-            </option>
-          )
-        )}
-      </select>
-    </div>
+                    {listaOptions.map((opt, idx) =>
+                      equipamentoTipo === "veiculo" ? (
+                        <option key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      ) : (
+                        <option key={opt.value + "_" + idx} value={opt.value}>
+                          {opt.label}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
 
-    <div className="mb-3">
-      <label className="form-label">Descrição</label>
-      <textarea
-        className="form-control"
-        required
-        value={descricao}
-        onChange={(e) => setDescricao(e.target.value)}
-        rows={3}
-      />
-    </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">Descrição</label>
+                  <textarea
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    required
+                    value={descricao}
+                    onChange={(e) => setDescricao(e.target.value)}
+                    rows={3}
+                  />
+                </div>
 
-    <div className="mb-3">
-      <label className="form-label">Data prevista (opcional)</label>
-      <input
-        type="date"
-        className="form-control"
-        value={dataPrevista}
-        onChange={(e) => setDataPrevista(e.target.value)}
-      />
-    </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">Data prevista (opcional)</label>
+                  <input
+                    type="date"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    value={dataPrevista}
+                    onChange={(e) => setDataPrevista(e.target.value)}
+                  />
+                </div>
 
-    <div className="mb-3">
-      <label className="form-label">Vincular a problema (opcional)</label>
-      <select
-        className="form-select"
-        value={problemaVinculado}
-        onChange={(e) => setProblemaVinculado(e.target.value)}
-      >
-        <option value="">Nenhum</option>
-        {problemasAbertos.map((p, idx) => (
-          <option key={idx} value={`${p.checklistId}:${p.nomeItem}`}>
-            {p.tipoOleo
-              ? p.tipoOleo === "motor"
-                ? "Óleo do Motor"
-                : p.tipoOleo === "diferencial"
-                ? "Óleo do Diferencial"
-                : "Óleo da Caixa"
-              : p.nomeItem}{" "}
-            — {p.veiculo}: {p.desc}
-          </option>
-        ))}
-      </select>
-      {problemasAbertos.length === 0 && (
-        <div className="small text-secondary mt-1">
-          Nenhum problema em aberto encontrado.
-        </div>
-      )}
-    </div>
-  </div>
+                <div>
+                  <label className="mb-1 block text-xs text-slate-400">Vincular a problema (opcional)</label>
+                  <select
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    value={problemaVinculado}
+                    onChange={(e) => setProblemaVinculado(e.target.value)}
+                  >
+                    <option value="">Nenhum</option>
+                    {problemasAbertos.map((p, idx) => (
+                      <option key={idx} value={`${p.checklistId}:${p.nomeItem}`}>
+                        {p.tipoOleo
+                          ? p.tipoOleo === "motor"
+                            ? "Óleo do Motor"
+                            : p.tipoOleo === "diferencial"
+                            ? "Óleo do Diferencial"
+                            : "Óleo da Caixa"
+                          : p.nomeItem}{" "}
+                        — {p.veiculo}: {p.desc}
+                      </option>
+                    ))}
+                  </select>
+                  {problemasAbertos.length === 0 && (
+                    <div className="mt-1 text-xs text-slate-500">
+                      Nenhum problema em aberto encontrado.
+                    </div>
+                  )}
+                </div>
+              </div>
 
-  {/* Rodapé */}
-  <div className="modal-footer border-0 px-4 pb-4 text-dark">
-    <button
-      type="button"
-      className="btn btn-secondary"
-      onClick={() => setShowModal(false)}
-    >
-      Cancelar
-    </button>
-    <button
-      type="submit"
-      className="btn btn-primary fw-bold"
-      disabled={enviando}
-    >
-      {enviando ? "Enviando..." : "Salvar"}
-    </button>
-  </div>
-</form>
-
+              <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
+                <button
+                  type="button"
+                  className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-white/10"
+                  onClick={() => setShowModal(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="rounded-xl bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50"
+                  disabled={enviando}
+                >
+                  {enviando ? "Enviando..." : "Salvar"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>,
         document.body

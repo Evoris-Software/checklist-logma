@@ -1,0 +1,52 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helpers
+    function isAuthed() {
+      return request.auth != null;
+    }
+    // Admin via custom claims: auth.token.admin === true
+    function isAdmin() {
+      return isAuthed() && request.auth.token.admin == true;
+    }
+
+    // ============================
+    // CHECKLISTS
+    // ============================
+    match /checklists/{userId}/{tipo}/{itemId}/{fileName} {
+      // GRAVAR: usuário logado E somente na própria pasta (ou admin)
+      allow write: if isAuthed()
+                   && (request.auth.uid == userId || isAdmin())
+                   // limitar tamanho e tipo
+                   && request.resource.size < 15 * 1024 * 1024
+                   && request.resource.contentType.matches('image/.*|video/mp4|video/quicktime|video/.*');
+
+      // LER: dono do arquivo ou admin
+      allow read: if isAuthed()
+                  && (request.auth.uid == userId || isAdmin());
+    }
+
+    // ============================
+    // ABASTECIMENTOS
+    // ============================
+    match /abastecimentos/{userId}/{abastecimentoId}/{fileName} {
+      // GRAVAR: usuário logado E na própria pasta (ou admin)
+      allow write: if isAuthed()
+                   && (request.auth.uid == userId || isAdmin())
+                   // limite de 10 MB
+                   && request.resource.size < 10 * 1024 * 1024
+                   // tipos permitidos: imagem ou PDF
+                   && request.resource.contentType.matches('image/.*|application/pdf');
+
+      // LER: dono do arquivo ou admin
+      allow read: if isAuthed()
+                  && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Bloqueia o resto por padrão
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

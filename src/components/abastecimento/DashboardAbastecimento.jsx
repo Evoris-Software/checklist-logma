@@ -11,7 +11,17 @@ import {
 import { FaSearch, FaEdit, FaTrash } from "react-icons/fa";
 import { collection, query, where, orderBy, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "../../services/firebase";
-
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
 import {
   lerConfigAbastecimento,
   salvarThreshold,
@@ -33,22 +43,15 @@ function DeltaBadge({ value, invert = false }) {
 
   const num = Number(value);
   const sign = num > 0 ? "+" : "";
-
   const isPositive = invert ? num < 0 : num > 0;
   const isNegative = invert ? num > 0 : num < 0;
-
   const cls = isPositive
-    ? "badge bg-success-subtle text-success-emphasis"
+    ? "ml-2 rounded-full bg-emerald-500/20 px-2 py-0.5 text-xs font-semibold text-emerald-400"
     : isNegative
-    ? "badge bg-danger-subtle text-danger-emphasis"
-    : "badge bg-secondary-subtle text-secondary-emphasis";
+    ? "ml-2 rounded-full bg-red-500/20 px-2 py-0.5 text-xs font-semibold text-red-400"
+    : "ml-2 rounded-full bg-slate-500/20 px-2 py-0.5 text-xs font-semibold text-slate-400";
 
-  return (
-    <span className={`ms-2 ${cls}`}>
-      {sign}
-      {num.toFixed(2)}
-    </span>
-  );
+  return <span className={cls}>{sign}{num.toFixed(2)}</span>;
 }
 
 // helpers
@@ -230,6 +233,8 @@ export default function DashboardAbastecimento() {
   const [kpis, setKpis] = useState(null);
   const [filtroPlaca, setFiltroPlaca] = useState("");
   const [filtroCombustivel, setFiltroCombustivel] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
 
   const [showVeiculos, setShowVeiculos] = useState(false);
   const [showLancar, setShowLancar] = useState(false);
@@ -330,6 +335,21 @@ export default function DashboardAbastecimento() {
   });
 }, [registros, filtroPlaca, filtroCombustivel]);
 
+  const totalPages = Math.max(1, Math.ceil((listaAbastFiltrada?.length || 0) / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const listaAbastPaginada = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return (listaAbastFiltrada || []).slice(start, start + pageSize);
+  }, [listaAbastFiltrada, currentPage, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filtroPlaca, filtroCombustivel, month, year, frota]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   // R$/L ponderado (sem ARLA)
   const precoMedioFiltrado = useMemo(() => {
     const visiveis = (listaAbastFiltrada || []).filter((r) => !r.isArla);
@@ -346,6 +366,32 @@ export default function DashboardAbastecimento() {
       { totalLitros: 0, totalValor: 0 }
     );
     return totalLitros > 0 ? totalValor / totalLitros : null;
+  }, [listaAbastFiltrada]);
+
+  // Dados para gráficos Recharts
+  const chartLitrosPorPlaca = useMemo(() => {
+    const byPlaca = new Map();
+    for (const a of listaAbastFiltrada || []) {
+      const placa = (a.placa || "—").toUpperCase();
+      byPlaca.set(placa, (byPlaca.get(placa) || 0) + Number(a.litros || 0));
+    }
+    return Array.from(byPlaca.entries())
+      .map(([name, litros]) => ({ name, litros: Number(litros.toFixed(2)) }))
+      .sort((a, b) => b.litros - a.litros)
+      .slice(0, 10);
+  }, [listaAbastFiltrada]);
+
+  const chartGastoPorDia = useMemo(() => {
+    const byDay = new Map();
+    for (const a of listaAbastFiltrada || []) {
+      const dt = a.dataAbastecimento?.toDate?.() ?? (a.dataAbastecimento?.seconds ? new Date(a.dataAbastecimento.seconds * 1000) : null);
+      const key = dt ? dt.toISOString().slice(0, 10) : "";
+      if (!key) continue;
+      byDay.set(key, (byDay.get(key) || 0) + Number(a.valorTotal || 0));
+    }
+    return Array.from(byDay.entries())
+      .map(([data, gasto]) => ({ data, gasto: Number(gasto.toFixed(2)) }))
+      .sort((a, b) => a.data.localeCompare(b.data));
   }, [listaAbastFiltrada]);
 
   async function handleSalvarTarget() {
@@ -390,6 +436,10 @@ export default function DashboardAbastecimento() {
   const atualTotal = Number(kpis?.atual?.totalGasto ?? 0);
   const anteriorTotal = Number(kpis?.anterior?.totalGasto ?? 0);
   const gastoDelta = (atualTotal || anteriorTotal) ? (atualTotal - anteriorTotal) : null;
+
+  const litrosAtuais = Number(kpis?.atual?.litrosTotais ?? 0);
+  const litrosAnteriores = Number(kpis?.anterior?.litrosTotais ?? 0);
+  const litrosDelta = (litrosAtuais || litrosAnteriores) ? (litrosAtuais - litrosAnteriores) : null;
 
   /* ========= Exportar Excel (SheetJS) ========= */
   async function handleExportExcel(tipo = "filtro") {
@@ -446,40 +496,57 @@ export default function DashboardAbastecimento() {
   }
 
   return (
-    <div className="container py-3">
-      {/* Header */}
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <div className="d-flex align-items-center gap-2">
-          <button type="button" className="btn-voltar" onClick={() => navigate(-1)}>
+    <div className="space-y-4 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 shadow transition hover:bg-white/10"
+            onClick={() => navigate(-1)}
+          >
             Voltar
           </button>
-          <h4 className="m-0 fw-bold text-primary">Dashboard de Abastecimento</h4>
+          <h4 className="text-lg font-bold text-sky-400">Dashboard de Abastecimento</h4>
         </div>
-        <div className="d-flex align-items-center gap-2">
-          <button type="button" className="btn btn-success d-flex align-items-center gap-2" onClick={() => handleExportExcel("filtro")}>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+            onClick={() => handleExportExcel("filtro")}
+          >
             <FaFileExcel /> Exportar Excel
           </button>
-          <button type="button" className="btn btn-primary d-flex align-items-center gap-2" onClick={() => setShowLancar(true)}>
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500"
+            onClick={() => setShowLancar(true)}
+          >
             <FaPlus /> Lançar abastecimento
           </button>
-          <button type="button" className="btn btn-outline-primary d-flex align-items-center gap-2" onClick={() => setShowVeiculos(true)}>
+          <button
+            type="button"
+            className="flex items-center gap-2 rounded-xl border border-sky-500/50 bg-sky-500/20 px-4 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-500/30"
+            onClick={() => setShowVeiculos(true)}
+          >
             <FaPlus /> Adicionar Veículo
           </button>
         </div>
       </div>
 
-      {/* Filtros */}
-      <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <div className="d-flex flex-wrap align-items-center gap-2">
-          <select className="form-select w-auto" value={frota} onChange={(e) => setFrota(e.target.value)}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:ring-2 focus:ring-sky-500"
+            value={frota}
+            onChange={(e) => setFrota(e.target.value)}
+          >
             <option value="todas">Todas as Frotas</option>
             <option value="leve">Frota Leve</option>
             <option value="pesada">Frota Pesada</option>
           </select>
-
           <input
             type="month"
-            className="form-control w-auto"
+            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:ring-2 focus:ring-sky-500"
             value={`${year}-${String(month).padStart(2, "0")}`}
             onChange={(e) => {
               const [y, m] = e.target.value.split("-").map(Number);
@@ -487,181 +554,227 @@ export default function DashboardAbastecimento() {
             }}
           />
         </div>
-
-        {/* Editor de alvo */}
         {frota !== "todas" && (
-          <div className="d-flex align-items-center gap-2">
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
-              onClick={() => setShowTargetEditor((s) => !s)}
-              aria-expanded={showTargetEditor}
-            >
-              {showTargetEditor ? "Fechar edição do alvo" : "Editar alvo R$/L"}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-300 hover:bg-white/10"
+            onClick={() => setShowTargetEditor((s) => !s)}
+            aria-expanded={showTargetEditor}
+          >
+            {showTargetEditor ? "Fechar edição do alvo" : "Editar alvo R$/L"}
+          </button>
         )}
       </div>
 
       {frota !== "todas" && showTargetEditor && (
-        <div className="card border-0 shadow-sm mb-3">
-          <div className="card-body d-flex flex-wrap align-items-center gap-2">
-            <label className="form-label mb-0">Alvo R$/L para frota {frota}:</label>
+        <div className="rounded-2xl border border-white/10 bg-[#161a24] p-4">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="text-sm text-slate-300">Alvo R$/L para frota {frota}:</label>
             <input
               type="number"
               step="0.001"
-              className="form-control w-auto"
+              className="w-24 rounded-lg border border-white/10 bg-black/30 px-2 py-1 text-slate-100"
               value={frota === "leve" ? th.leve.precoMedioTarget : th.pesada.precoMedioTarget}
               onChange={(e) => {
                 const val = Number(e.target.value);
                 setTh((prev) => ({ ...prev, [frota]: { ...prev[frota], precoMedioTarget: val } }));
               }}
             />
-            <button type="button" className="btn btn-primary" onClick={handleSalvarTarget} disabled={savingTarget}>
+            <button
+              type="button"
+              className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              onClick={handleSalvarTarget}
+              disabled={savingTarget}
+            >
               {savingTarget ? "Salvando..." : "Salvar alvo"}
             </button>
           </div>
         </div>
       )}
 
-      {/* Busca por placa */}
-      <div className="d-flex align-items-center gap-2 mb-3">
-        <div className="input-group" style={{ maxWidth: 380 }}>
-          <span className="input-group-text">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex max-w-[380px] items-center rounded-xl border border-white/10 bg-black/30">
+          <span className="px-3 text-slate-400">
             <FaSearch />
           </span>
           <input
-            className="form-control"
+            className="flex-1 bg-transparent py-2 pr-3 text-slate-100 placeholder:text-slate-500 focus:outline-none"
             placeholder="Filtrar por placa (ex.: IZP)"
             value={filtroPlaca}
             onChange={(e) => setFiltroPlaca(e.target.value)}
           />
         </div>
+        <div className="flex flex-col">
+          <label className="mb-0.5 text-xs text-slate-400">Combustível</label>
+          <select
+            className="rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 focus:ring-2 focus:ring-sky-500"
+            value={filtroCombustivel}
+            onChange={(e) => setFiltroCombustivel(e.target.value)}
+          >
+            <option value="">Todos</option>
+            <option value="diesel">Diesel</option>
+            <option value="gasolina">Gasolina</option>
+            <option value="arla">ARLA</option>
+          </select>
+        </div>
       </div>
-
-      {/* Busca por Combustível */}
-<div className="d-flex flex-wrap align-items-center gap-2 mb-3">
-  <div className="d-flex flex-column">
-    <label className="form-label mb-0">Combustível:</label>
-    <select
-      className="form-select w-auto"
-      value={filtroCombustivel}
-      onChange={(e) => setFiltroCombustivel(e.target.value)}
-    >
-      <option value="">Todos</option>
-      <option value="diesel">Diesel</option>
-      <option value="gasolina">Gasolina</option>
-      <option value="arla">ARLA</option>
-    </select>
-  </div>
-</div>
 
       {/* KPI Cards */}
-      <div className="row g-3">
-        {/* Média km/L */}
-        <div className="col-12 col-md-4">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-1">
-                <span className="text-muted small">Média km/L ({String(month).padStart(2, "0")}/{year})</span>
-                <FaGaugeHigh className="text-secondary" />
-              </div>
-              <div className={`h2 m-0 ${consumoDelta == null ? "" : consumoDelta > 0 ? "text-success" : "text-danger"}`}>
-                {loading ? "…" : (consumoAtual ?? "—")}
-                {!loading && consumoDelta != null && <DeltaBadge value={consumoDelta} />}
-              </div>
-              {!loading && consumoAnterior != null && (
-                <div className="small text-muted mt-1">
-                  Mês anterior ({String(kpis?.refAnterior?.mes).padStart(2, "0")}/{kpis?.refAnterior?.ano}): {consumoAnterior} km/L
-                </div>
-              )}
-            </div>
+      <div className="grid gap-3 md:grid-cols-4">
+        <div className="rounded-2xl border border-white/10 bg-[#161a24] p-3 shadow-lg ring-1 ring-white/5">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-xs text-slate-400">Média km/L ({String(month).padStart(2, "0")}/{year})</span>
+            <FaGaugeHigh className="text-slate-500" />
           </div>
+          <div className={`text-2xl font-bold ${consumoDelta == null ? "text-slate-100" : consumoDelta > 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {loading ? "…" : (consumoAtual ?? "—")}
+            {!loading && consumoDelta != null && <DeltaBadge value={consumoDelta} />}
+          </div>
+          {!loading && consumoAnterior != null && (
+            <div className="mt-1 text-xs text-slate-500">
+              Mês anterior ({String(kpis?.refAnterior?.mes).padStart(2, "0")}/{kpis?.refAnterior?.ano}): {consumoAnterior} km/L
+            </div>
+          )}
         </div>
-
-        {/* Preço médio vs alvo */}
-        <div className="col-12 col-md-4">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-1">
-                <span className="text-muted small">Preço médio (R$/L){frota !== "todas" ? ` — Frota ${frota}` : ""}</span>
-                <FaGasPump className="text-secondary" />
-              </div>
-              <div
-                className={`h2 m-0 ${
-                  frota !== "todas" && precoTargetAtual != null
-                    ? (Number(precoMedioFiltrado ?? 0) < Number(precoTargetAtual) ? "text-success" : "text-danger")
-                    : ""
-                }`}
-              >
-                {loading ? "…" : (precoMedioFiltrado != null ? precoMedioFiltrado.toFixed(3) : "—")}
-              </div>
-              {frota !== "todas" ? (
-                <div className="small text-muted mt-1">Alvo atual: R$ {Number(precoTargetAtual ?? 0).toFixed(3)}</div>
-              ) : (
-                <div className="small text-muted mt-1">Mostrando média geral (Leve + Pesada). Selecione uma frota para comparar com o alvo.</div>
-              )}
-            </div>
+        <div className="rounded-2xl border border-white/10 bg-[#161a24] p-3 shadow-lg ring-1 ring-white/5">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-xs text-slate-400">Preço médio (R$/L){frota !== "todas" ? ` — Frota ${frota}` : ""}</span>
+            <FaGasPump className="text-slate-500" />
           </div>
+          <div className={`text-xl font-bold ${
+            frota !== "todas" && precoTargetAtual != null
+              ? (Number(precoMedioFiltrado ?? 0) < Number(precoTargetAtual) ? "text-emerald-400" : "text-red-400")
+              : "text-slate-100"
+          }`}>
+            {loading
+              ? "…"
+              : precoMedioFiltrado != null
+              ? `R$ ${precoMedioFiltrado.toFixed(3)}`
+              : "—"}
+          </div>
+          {frota !== "todas" ? (
+            <div className="mt-1 text-xs text-slate-500">
+              Alvo: R$ {Number(precoTargetAtual ?? 0).toFixed(3)}
+            </div>
+          ) : (
+            <div className="mt-1 text-xs text-slate-500">
+              Selecione uma frota para visualizar
+            </div>
+          )}
         </div>
-
-        {/* Gasto total */}
-        <div className="col-12 col-md-4">
-          <div className="card border-0 shadow-sm">
-            <div className="card-body">
-              <div className="d-flex align-items-center justify-content-between mb-1">
-                <span className="text-muted small">Gasto total {frota === "todas" ? "(Leve + Pesada)" : `(Frota ${frota})`}</span>
-                <FaMoneyBillWave className="text-secondary" />
-              </div>
-              <div className={`h2 m-0 ${gastoDelta == null ? "" : gastoDelta < 0 ? "text-success" : "text-danger"}`}>
-                {loading ? "…" : (kpis?.atual?.totalGasto ?? "—")}
-                {!loading && <DeltaBadge value={gastoDelta} invert />}
-              </div>
-              {!loading && kpis?.anterior && (
-                <div className="small text-muted mt-1">Mês anterior: R$ {(kpis.anterior.totalGasto ?? 0).toFixed(2)}</div>
-              )}
-            </div>
+        <div className="rounded-2xl border border-white/10 bg-[#161a24] p-3 shadow-lg ring-1 ring-white/5">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-xs text-slate-400">Gasto total {frota === "todas" ? "(Leve + Pesada)" : `(Frota ${frota})`}</span>
+            <FaMoneyBillWave className="text-slate-500" />
           </div>
+          <div className={`text-xl font-bold ${gastoDelta == null ? "text-slate-100" : gastoDelta < 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {loading
+              ? "…"
+              : kpis?.atual?.totalGasto != null
+              ? `R$ ${Number(kpis.atual.totalGasto).toFixed(2)}`
+              : "—"}
+            {!loading && <DeltaBadge value={gastoDelta} invert />}
+          </div>
+          {!loading && kpis?.anterior && (
+            <div className="mt-1 text-xs text-slate-500">
+              Mês anterior: R$ {Number(kpis.anterior.totalGasto ?? 0).toFixed(2)}
+            </div>
+          )}
+        </div>
+        <div className="rounded-2xl border border-white/10 bg-[#161a24] p-3 shadow-lg ring-1 ring-white/5">
+          <div className="mb-1 flex items-center justify-between">
+            <span className="text-xs text-slate-400">
+              Litros totais abastecidos ({String(month).padStart(2, "0")}/{year})
+            </span>
+            <FaGasPump className="text-emerald-400" />
+          </div>
+          <div className={`text-xl font-bold ${litrosDelta == null ? "text-slate-100" : litrosDelta > 0 ? "text-emerald-400" : "text-red-400"}`}>
+            {loading ? "…" : litrosAtuais.toFixed(2)}
+            {!loading && litrosDelta != null && <DeltaBadge value={litrosDelta} />}
+          </div>
+          {!loading && kpis?.anterior && (
+            <div className="mt-1 text-xs text-slate-500">
+              Mês anterior: {litrosAnteriores.toFixed(2)} L
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Tabela */}
-      <div className="card shadow-sm mt-4 border-0">
-        <div className="card-header bg-body border-0">
-          <strong>Abastecimentos do mês</strong>
+      {/* Gráficos Recharts */}
+      {(chartLitrosPorPlaca.length > 0 || chartGastoPorDia.length > 0) && (
+        <div className="grid gap-4 lg:grid-cols-2">
+          {chartLitrosPorPlaca.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-[#161a24] p-4 ring-1 ring-white/5">
+              <h5 className="mb-3 text-sm font-semibold text-slate-300">Litros por placa (top 10)</h5>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartLitrosPorPlaca} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#161a24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }} labelStyle={{ color: "#e2e8f0" }} />
+                    <Bar dataKey="litros" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+          {chartGastoPorDia.length > 0 && (
+            <div className="rounded-2xl border border-white/10 bg-[#161a24] p-4 ring-1 ring-white/5">
+              <h5 className="mb-3 text-sm font-semibold text-slate-300">Gasto por dia</h5>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={chartGastoPorDia} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                    <XAxis dataKey="data" tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <YAxis tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                    <Tooltip contentStyle={{ backgroundColor: "#161a24", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8 }} labelStyle={{ color: "#e2e8f0" }} />
+                    <Area type="monotone" dataKey="gasto" stroke="#10b981" fill="rgba(16,185,129,0.2)" strokeWidth={2} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </div>
-        <div className="table-responsive">
-          <table className="table align-middle mb-0">
-            <thead className="table-light">
-              <tr>
-                <th>Data</th>
-                <th>Frota</th>
-                <th>Veículo</th>
-                <th>Frota Nº</th>
-                <th>Placa</th>
-                <th>Litros</th>
-                <th>Preço/L</th>
-                <th>Valor Total</th>
-                <th>KM Atual</th>
-                <th>KM/L</th>
-                <th>Combustível</th>
-                <th>Posto/Obs.</th>
-                <th className="text-end">Ações</th>
+      )}
+
+      {/* Tabela */}
+      <div className="rounded-2xl border border-white/10 bg-[#161a24] shadow-lg ring-1 ring-white/5 overflow-hidden">
+        <div className="border-b border-white/10 bg-white/5 px-4 py-3">
+          <strong className="text-slate-200">Abastecimentos do mês</strong>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[800px] text-left text-sm">
+            <thead>
+              <tr className="border-b border-white/10 bg-white/5 text-slate-400">
+                <th className="px-3 py-2 font-medium">Data</th>
+                <th className="px-3 py-2 font-medium">Frota</th>
+                <th className="px-3 py-2 font-medium">Veículo</th>
+                <th className="px-3 py-2 font-medium">Frota Nº</th>
+                <th className="px-3 py-2 font-medium">Placa</th>
+                <th className="px-3 py-2 font-medium">Litros</th>
+                <th className="px-3 py-2 font-medium">Preço/L</th>
+                <th className="px-3 py-2 font-medium">Valor Total</th>
+                <th className="px-3 py-2 font-medium">KM Atual</th>
+                <th className="px-3 py-2 font-medium">KM/L</th>
+                <th className="px-3 py-2 font-medium">Combustível</th>
+                <th className="px-3 py-2 font-medium">Posto/Obs.</th>
+                <th className="px-3 py-2 text-right font-medium">Ações</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {loading && (
                 <tr>
-                  <td colSpan={13}>Carregando…</td>
+                  <td colSpan={13} className="px-3 py-6 text-center text-slate-400">Carregando…</td>
                 </tr>
               )}
               {!loading && !listaAbastFiltrada?.length && (
                 <tr>
-                  <td colSpan={13}>Sem registros no período.</td>
+                  <td colSpan={13} className="px-3 py-6 text-center text-slate-400">Sem registros no período.</td>
                 </tr>
               )}
               {!loading &&
-                listaAbastFiltrada?.map((a) => {
+                listaAbastPaginada?.map((a) => {
                   const v = mapVeic.get(a.veiculoId);
                   const dtObj =
                     typeof a.dataAbastecimento?.toDate === "function"
@@ -672,24 +785,24 @@ export default function DashboardAbastecimento() {
                       ? a.dataAbastecimento
                       : null;
                   return (
-                    <tr key={a.id}>
-                      <td>{dtObj ? dtObj.toLocaleDateString("pt-BR") : "—"}</td>
-                      <td className="text-capitalize">{a.tipoFrota || "—"}</td>
-                      <td>{v?.nome || "—"}</td>
-                      <td>{v?.frotaNumero || a.frotaNumero || "—"}</td>
-                      <td>{(v?.placa || a.placa || "—").toUpperCase()}</td>
-                      <td>{typeof a.litros === "number" ? a.litros.toFixed(2) : "—"}</td>
-                      <td>{typeof a.precoPorLitro === "number" ? a.precoPorLitro.toFixed(3) : "—"}</td>
-                      <td>{typeof a.valorTotal === "number" ? a.valorTotal.toFixed(2) : "—"}</td>
-                      <td>{a.kmAtual ?? "—"}</td>
-                      <td>{a.kmPorLitro != null ? Number(a.kmPorLitro).toFixed(3) : "—"}</td>
-                      <td className="text-capitalize">{a.tipoCombustivel ?? "—"}</td>
-                      <td>{a.observacao ?? "—"}</td>
-                      <td className="text-end">
-                        <div className="btn-group">
+                    <tr key={a.id} className="hover:bg-white/5">
+                      <td className="px-3 py-2 text-slate-300">{dtObj ? dtObj.toLocaleDateString("pt-BR") : "—"}</td>
+                      <td className="capitalize px-3 py-2 text-slate-300">{a.tipoFrota || "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">{v?.nome || "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">{v?.frotaNumero || a.frotaNumero || "—"}</td>
+                      <td className="px-3 py-2 font-medium text-slate-200">{(v?.placa || a.placa || "—").toUpperCase()}</td>
+                      <td className="px-3 py-2 text-slate-300">{typeof a.litros === "number" ? a.litros.toFixed(2) : "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">{typeof a.precoPorLitro === "number" ? a.precoPorLitro.toFixed(3) : "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">{typeof a.valorTotal === "number" ? a.valorTotal.toFixed(2) : "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">{a.kmAtual ?? "—"}</td>
+                      <td className="px-3 py-2 text-slate-300">{a.kmPorLitro != null ? Number(a.kmPorLitro).toFixed(3) : "—"}</td>
+                      <td className="capitalize px-3 py-2 text-slate-300">{a.tipoCombustivel ?? "—"}</td>
+                      <td className="max-w-[120px] truncate px-3 py-2 text-slate-400">{a.observacao ?? "—"}</td>
+                      <td className="px-3 py-2 text-right">
+                        <div className="flex justify-end gap-1">
                           <button
                             type="button"
-                            className="btn btn-sm btn-outline-secondary"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10 hover:text-slate-200 disabled:opacity-40"
                             title={a.imagem ? "Exibir imagem" : "Sem imagem"}
                             disabled={!a.imagem}
                             onClick={(e) => {
@@ -698,34 +811,31 @@ export default function DashboardAbastecimento() {
                               if (!a.imagem) return;
                               setImagemUrl(a.imagem);
                               setShowImagem(true);
-                              return false;
                             }}
                           >
                             <FaImage />
                           </button>
                           <button
                             type="button"
-                            className="btn btn-sm btn-outline-primary"
+                            className="rounded-lg p-1.5 text-sky-400 hover:bg-sky-500/20"
                             title="Editar"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               setRegistroSelecionado(a);
                               setShowEditar(true);
-                              return false;
                             }}
                           >
                             <FaEdit />
                           </button>
                           <button
                             type="button"
-                            className="btn btn-sm btn-outline-danger"
+                            className="rounded-lg p-1.5 text-red-400 hover:bg-red-500/20"
                             title="Excluir"
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               handleDelete(a.id);
-                              return false;
                             }}
                           >
                             <FaTrash />
@@ -738,6 +848,31 @@ export default function DashboardAbastecimento() {
             </tbody>
           </table>
         </div>
+        {!loading && (listaAbastFiltrada?.length || 0) > pageSize && (
+          <div className="flex items-center justify-end gap-3 border-t border-white/10 bg-white/5 px-4 py-3 text-xs text-slate-400">
+            <span>
+              Página {currentPage} de {totalPages}
+            </span>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                className="rounded-lg border border-white/10 px-2 py-1 text-xs text-slate-200 disabled:opacity-40"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+              >
+                Anterior
+              </button>
+              <button
+                type="button"
+                className="rounded-lg border border-white/10 px-2 py-1 text-xs text-slate-200 disabled:opacity-40"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Próxima
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal: Lançar Abastecimento */}
@@ -762,41 +897,26 @@ export default function DashboardAbastecimento() {
         }}
       />
 
-      {/* Modal: Exibir Imagem */}
       {showImagem && (
         <div
+          className="fixed inset-0 z-[4000] flex items-center justify-center bg-black/80 p-4"
           onClick={() => setShowImagem(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,.8)",
-            zIndex: 4000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16,
-          }}
         >
           <div
-            className="bg-white rounded-3 shadow-lg"
+            className="max-h-[90vh] max-w-[90vw] rounded-2xl border border-white/10 bg-[#161a24] p-4 shadow-xl"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: "90vw", maxHeight: "90vh", padding: 12 }}
           >
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <strong>Imagem do abastecimento</strong>
-              <button type="button" className="btn-close" onClick={() => setShowImagem(false)} />
+            <div className="mb-2 flex items-center justify-between">
+              <strong className="text-slate-200">Imagem do abastecimento</strong>
+              <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white/10" onClick={() => setShowImagem(false)}>×</button>
             </div>
             {imagemUrl ? (
-              <img
-                src={imagemUrl}
-                alt="Imagem do abastecimento"
-                style={{ maxWidth: "100%", maxHeight: "80vh", display: "block", margin: "0 auto" }}
-              />
+              <img src={imagemUrl} alt="Imagem do abastecimento" className="mx-auto max-h-[80vh] max-w-full rounded-lg" />
             ) : (
-              <div className="text-muted">Sem imagem.</div>
+              <div className="text-slate-500">Sem imagem.</div>
             )}
-            <div className="mt-2 text-end">
-              <a className="btn btn-sm btn-outline-secondary" href={imagemUrl || "#"} target="_blank" rel="noreferrer">
+            <div className="mt-2 text-right">
+              <a className="rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-slate-300 hover:bg-white/10" href={imagemUrl || "#"} target="_blank" rel="noreferrer">
                 Abrir em nova aba
               </a>
             </div>
@@ -804,25 +924,20 @@ export default function DashboardAbastecimento() {
         </div>
       )}
 
-      {/* Overlay: Veículos */}
       <Suspense fallback={null}>
         {showVeiculos && (
           <div
+            className="fixed inset-0 z-[3000] overflow-y-auto bg-black/60 p-4"
             onClick={() => setShowVeiculos(false)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,.6)",
-              zIndex: 3000,
-              padding: 16,
-              overflowY: "auto",
-            }}
           >
             <div
-              className="bg-white rounded-3 shadow-lg mx-auto"
+              className="mx-auto max-w-4xl rounded-2xl border border-white/10 bg-[#161a24] p-4 shadow-xl"
               onClick={(e) => e.stopPropagation()}
-              style={{ maxWidth: 1100, width: "100%", padding: 16 }}
             >
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-slate-200">Veículos</h3>
+                <button type="button" className="rounded-lg p-1.5 text-slate-400 hover:bg-white/10" onClick={() => setShowVeiculos(false)}>×</button>
+              </div>
               <VeiculosSection
                 defaultTipoFrota={frota === "todas" ? "pesada" : frota}
                 onAfterChange={() => {

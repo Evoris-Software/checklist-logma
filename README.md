@@ -1,107 +1,113 @@
-# 🚚 Checklist Logma
+# Checklist Logma v2.0
 
-Aplicação interna para **checklist e abastecimento** de frota (focada em frota pesada), construída em **React (Vite)** e **Firebase** (Auth, Firestore e Storage).  
-Inclui painel de KPIs, lançamento com imagem (nota/comprovante), histórico, cadastro de veículos e controle de acesso por papéis.
+Aplicacao interna para checklists operacionais, manutencao e abastecimento de frota da Logma.
+A versao 2.0 consolida o frontend em Tailwind, TypeScript progressivo e dashboards modernos com Recharts.
 
-> **Status:** Uso interno (comercial/privado).
+## Stack v2.0
 
-<img width="1227" height="837" alt="Preview" src="https://github.com/user-attachments/assets/00f3d564-e5c0-4387-9eeb-5efa784c509a" />
+- React + Vite
+- Tailwind CSS v4
+- TypeScript (modo strict, migracao progressiva)
+- Firebase (Auth, Firestore, Storage, App Check)
+- Recharts (dashboards e graficos)
+- React Router
+- React Icons
+- xlsx + jsPDF para exportacao
 
----
+## O que mudou na v2.0
 
-## ✨ Principais recursos
+- Remocao de Bootstrap da UI principal
+- Novo layout protegido com `Sidebar` fixa e navegacao por role
+- Refatoracao de autenticacao com `AuthContext` tipado
+- Dashboard de abastecimento com KPIs e graficos Recharts
+- AdminPanel migrado para visual dark premium + Recharts
+- Historico e Home migrados para Tailwind
+- Manutencao, Veiculos e Usuarios migrados para padrao visual Tailwind
+- Camada de servicos tipada em TypeScript:
+  - `services/firebase.ts`
+  - `services/abastecimentos.ts`
+  - `services/veiculos.ts`
+- Tipos centralizados em `src/types/index.ts`
 
-- 🔐 **Autenticação** (Firebase Auth) + controle por **papéis** (`useUserRoles`, `RoleGate`)
-- 🚛 **Veículos** (seção e modal de gestão)
-- ⛽ **Abastecimentos**
-  - Lançamento com foto (armazenada no Storage)
-  - Edição/Exclusão em modal
-  - Exportação para Excel (SheetJS)
-- 📊 **Dashboard de KPIs** (mês atual x anterior, metas de preço por frota)
-- 👮 **Painel de Administrador**
-  - Gráficos, pendências, administração de usuarios, checklists e veículos
-- ⛽ Manutenções
-- 🧾 **Histórico** (busca e filtros)
-- 📝 **Checklist** (apenas frota pesada)
-- 👮 **Rotas protegidas** (`ProtectedRoute`) e **gates** por role/permissão
-- 🎯 **Targets** (metas de R$/L por frota) persistidos no Firestore
+## Estrutura principal
 
----
-
-## 🗂️ Estrutura do projeto
-
+```txt
 src/
-├─ assets/
-│ └─ logo.png
-├─ auth/
-│ ├─ AuthContext.jsx
-│ └─ ProtectedRoute.jsx
-├─ components/
-│ ├─ abastecimento/
-│ │ ├─ DashboardAbastecimento.jsx
-│ │ ├─ EditarAbastecimentoModal.jsx
-│ │ ├─ LancarAbastecimento.jsx
-│ │ └─ ModalLancarAbastecimento.jsx
-│ ├─ Login.jsx
-│ ├─ UsuariosSection.jsx
-│ ├─ VeiculosSection.jsx
-│ └─ VeiculosSectionModalContainer.jsx
-├─ data/
-│ └─ checklistItems.js
-├─ hooks/
-│ └─ useUserRoles.js
-├─ modules/
-│ └─ abastecimento/
-│ ├─ MyAbastecimentos.jsx
-│ └─ PublicAbastecimentoForm.jsx
-├─ pages/
-│ ├─ AdminPanel.jsx
-│ ├─ Checklist.jsx
-│ ├─ Historico.jsx
-│ ├─ Home.jsx
-│ └─ manutencao.jsx
-├─ services/
-│ ├─ abastecimentos.js
-│ ├─ firebase.js
-│ └─ veiculos.js
-├─ App.jsx
-├─ index.css
-├─ main.jsx
-└─ Themecontext.jsx
+  auth/
+    AuthContext.tsx
+    ProtectedRoute.tsx
+  layouts/
+    ProtectedLayout.tsx
+    Sidebar.tsx
+  services/
+    firebase.ts
+    abastecimentos.ts
+    veiculos.ts
+  types/
+    index.ts
+  pages/
+    Home.tsx
+    Historico.tsx
+    AdminPanel.jsx
+    manutencao.jsx
+    Checklist.jsx
+  components/
+    Login.tsx
+    VeiculosSection.jsx
+    UsuariosSection.jsx
+    abastecimento/
+      DashboardAbastecimento.jsx
+      ModalLancarAbastecimento.jsx
+      EditarAbastecimentoModal.jsx
+```
 
----
+## Permissoes e perfis
 
-## 🔧 Tecnologias
+- `admin`
+- `motorista`
+- `operador_empilhadeira`
+- `operador_gerador`
+- `vendedor`
 
-- **React + Vite**
-- **Firebase** (Auth, Firestore, Storage)
-- **Bootstrap 5** + **React Icons**
-- **SheetJS (xlsx)** para exportação
-- **Chart.js / Recharts** em KPIs
+As rotas e opcoes de menu sao controladas por role no layout protegido.
 
----
+## Ambiente de desenvolvimento
 
-## 🚀 Ambiente de desenvolvimento
+### Pre-requisitos
 
-### Pré-requisitos
-- Node.js LTS (18+)
-- npm (ou pnpm/yarn)
-- Projeto Firebase criado (Auth + Firestore + Storage)
-- Variáveis de ambiente configuradas
+- Node.js 18+
+- npm
+- Projeto Firebase configurado (Auth + Firestore + Storage)
+- Arquivo `.env` local com chaves do Firebase
 
+### Instalar dependencias
 
+```bash
+npm install
+```
 
-## Este software é de **uso interno e confidencial**. Você não tem permissão para copiar, distribuir, sublicenciar, revender, publicar ou disponibilizar este software a terceiros, no todo ou em parte, sem autorização **expressa e por escrito** da Logma.
+### Rodar em desenvolvimento
 
-## Direitos concedidos:
-- Execução e uso interno pela equipe autorizada da Logma;
-- Modificações internas para manutenção/evolução do produto.
+```bash
+npm run dev
+```
 
-## Restrições:
-- É proibida a redistribuição, uso fora do ambiente corporativo ou disponibilização pública;
-- É proibida a engenharia reversa para fins de cópia/redistribuição;
-- Quaisquer dados tratados pelo sistema devem ser protegidos conforme as políticas de segurança da Logma.
+### Build de producao
 
-## Este software é fornecido “no estado em que se encontra”, sem garantias de qualquer tipo. Em caso de dúvidas, contatar o time responsável.
+```bash
+npm run build
+```
 
-## Checklist Logma — Copyright © Logma Transportes.
+## Seguranca e politicas internas
+
+- Nunca commitar `.env`
+- Manter `.gitignore` cobrindo arquivos sensiveis e temporarios
+- Uso interno e confidencial
+- Dados operacionais devem seguir politicas internas da Logma
+
+## Licenciamento interno
+
+Este software e de uso interno e confidencial da Logma.
+Nao e permitido copiar, distribuir, sublicenciar, revender, publicar ou disponibilizar este software a terceiros sem autorizacao expressa por escrito.
+
+Copyright (c) Logma Transportes.

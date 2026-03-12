@@ -379,13 +379,17 @@ if (tipoChecklist === "veiculo") {
 
   if (!permitido) {
     return (
-      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-dark text-light">
-        <div className="bg-light text-dark p-5 rounded-4 shadow-lg text-center w-100" style={{ maxWidth: 420 }}>
-          <h2 className="fw-bold mb-3 text-danger">Acesso negado</h2>
-          <p>
-            Você não tem permissão para preencher o checklist do tipo <b>{tipoChecklist}</b>.
+      <div className="flex min-h-0 flex-1 items-center justify-center py-8 text-slate-100">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161a24] p-6 text-center shadow-xl">
+          <h2 className="mb-3 text-lg font-bold text-red-400">Acesso negado</h2>
+          <p className="text-slate-300">
+            Você não tem permissão para preencher o checklist do tipo <b className="text-slate-100">{tipoChecklist}</b>.
           </p>
-          <button className="mt-4 btn btn-primary fw-bold px-5 py-2" onClick={() => navigate("/")}>
+          <button
+            type="button"
+            className="mt-4 rounded-xl bg-sky-600 px-5 py-2 font-semibold text-white hover:bg-sky-500"
+            onClick={() => navigate("/")}
+          >
             Voltar
           </button>
         </div>
@@ -446,133 +450,123 @@ if (tipoChecklist === "veiculo") {
   const isEmpilhadeiraSelecionada = tipoChecklist === "equipamento" && selecionadoObj?.tipo === "empilhadeira";
 
   return (
-    <div className="min-vh-100 d-flex align-items-center justify-content-center bg-dark text-light p-3">
+    <div className="flex min-h-0 flex-1 items-center justify-center p-4 text-slate-100">
       <form
         onSubmit={enviarChecklist}
-        className="W-100 bg-light text-dark rounded-4 shadow-lg p-4"
-        style={{ maxWidth: 660 }}
+        className="w-full max-w-2xl rounded-2xl border border-white/10 bg-[#161a24] p-5 shadow-xl ring-1 ring-white/5"
         autoComplete="off"
       >
-        <button type="button" className="btn-voltar" onClick={() => navigate("/")}>
-          <span style={{ fontSize: "1.5em" }}>←</span> Voltar
+        <button
+          type="button"
+          className="mb-4 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-slate-200 shadow transition hover:bg-white/10"
+          onClick={() => navigate("/")}
+        >
+          ← Voltar
         </button>
 
-        <h2 className="text-center fw-bold mb-3 text-primary">{tituloChecklist}</h2>
+        <h2 className="mb-4 text-center text-xl font-bold text-sky-400">{tituloChecklist}</h2>
 
-        {/* Select de item */}
-        <div className="mb-3">
+        <div className="mb-4">
           <select
-            className="form-select form-select-lg"
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-slate-100 shadow-inner outline-none focus:ring-2 focus:ring-sky-500"
             value={itemSelecionado}
-            onChange={e => setItemSelecionado(e.target.value)}
+            onChange={(e) => setItemSelecionado(e.target.value)}
             required
           >
             <option value="">{placeholder}</option>
             {listaOpcoes.map((item) => (
               <option key={item.id} value={item.id}>
                 {item.tipo === "veiculo"
-                  ? labelVeiculo(item) // FROTA — PLACA
-                  : (
-                      `${item.nome}${
-                        item.tipo === "empilhadeira" && item.tipoEmpilhadeira
-                          ? ` — ${item.tipoEmpilhadeira === "gas" ? "GÁS" : item.tipoEmpilhadeira === "eletrica" ? "ELÉTRICA" : ""}`
-                          : ""
-                      }${
-                        item.tipo === "paleteira" && item.tipoPaleteira
-                          ? ` — ${item.tipoPaleteira === "galvanizada" ? "GALVANIZADA" : "NORMAL"}`
-                          : ""
-                      }${item.descricao ? ` — ${item.descricao}` : ""}`
-                    )
+                  ? labelVeiculo(item)
+                  : `${item.nome}${
+                      item.tipo === "empilhadeira" && item.tipoEmpilhadeira
+                        ? ` — ${item.tipoEmpilhadeira === "gas" ? "GÁS" : item.tipoEmpilhadeira === "eletrica" ? "ELÉTRICA" : ""}`
+                        : ""
+                    }${
+                      item.tipo === "paleteira" && item.tipoPaleteira
+                        ? ` — ${item.tipoPaleteira === "galvanizada" ? "GALVANIZADA" : "NORMAL"}`
+                        : ""
+                    }${item.descricao ? ` — ${item.descricao}` : ""}`
                 }
               </option>
             ))}
           </select>
         </div>
 
-        {/* KM para veículo */}
         {tipoChecklist === "veiculo" && itemSelecionado && (
-          <div className="mb-3">
-            <div className="input-group input-group-lg">
-              <input
-                placeholder="KM atual"
-                type="number"
-                className="form-control"
-                value={kmAtual}
-                onChange={(e) => setKmAtual(e.target.value)}
-                required
-                min={ultimoKm !== null ? ultimoKm : undefined}
-              />
-              <span className="input-group-text bg-light text-secondary" title="Último KM registrado">
-                Último: {ultimoKm !== null ? ultimoKm : "--"}
-              </span>
-            </div>
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center">
+            <input
+              placeholder="KM atual"
+              type="number"
+              className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500"
+              value={kmAtual}
+              onChange={(e) => setKmAtual(e.target.value)}
+              required
+              min={ultimoKm !== null ? ultimoKm : undefined}
+            />
+            <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-400" title="Último KM registrado">
+              Último: {ultimoKm !== null ? ultimoKm : "--"}
+            </span>
           </div>
         )}
 
-        {/* Horímetro para empilhadeira */}
         {isEmpilhadeiraSelecionada && (
-          <div className="mb-3">
-            <div className="input-group input-group-lg">
-              <input
-                placeholder="Horímetro atual (h)"
-                type="number"
-                className="form-control"
-                value={horimetroAtual}
-                onChange={(e) => setHorimetroAtual(e.target.value)}
-                required
-                min={ultimoHorimetro !== null ? ultimoHorimetro : undefined}
-              />
-              <span className="input-group-text bg-light text-secondary" title="Último horímetro registrado">
-                Último: {ultimoHorimetro !== null ? ultimoHorimetro : "--"}
-              </span>
-            </div>
+          <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-center">
+            <input
+              placeholder="Horímetro atual (h)"
+              type="number"
+              className="flex-1 rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500"
+              value={horimetroAtual}
+              onChange={(e) => setHorimetroAtual(e.target.value)}
+              required
+              min={ultimoHorimetro !== null ? ultimoHorimetro : undefined}
+            />
+            <span className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-slate-400" title="Último horímetro">
+              Último: {ultimoHorimetro !== null ? ultimoHorimetro : "--"}
+            </span>
           </div>
         )}
 
-        {/* Itens do checklist */}
         {itemSelecionado && (
-          <div className="mb-3" style={{ maxHeight: 350, overflowY: 'auto' }}>
+          <div className="mb-4 max-h-[350px] overflow-y-auto space-y-4 pr-1">
             {itensChecklist.map((item) => (
-              <div key={item} className="mb-4 pb-2 border-bottom border-2">
-                <label className="form-label fw-bold fs-5">{item}</label>
-                <div className="d-flex align-items-center gap-2">
+              <div key={item} className="border-b border-white/10 pb-3">
+                <label className="mb-2 block font-semibold text-slate-200">{item}</label>
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => handleChange(item, "ok")}
-                    className={`btn btn-lg fw-bold me-2 ${respostas[item] === "ok" ? "btn-success" : "btn-outline-secondary"}`}
+                    className={`rounded-xl px-4 py-2 font-semibold transition ${
+                      respostas[item] === "ok"
+                        ? "bg-emerald-600 text-white"
+                        : "border border-white/20 bg-white/5 text-slate-300 hover:bg-white/10"
+                    }`}
                   >
                     ✅ OK
                   </button>
                   <button
                     type="button"
                     onClick={() => handleChange(item, "nok")}
-                    className={`btn btn-lg fw-bold me-2 ${respostas[item] === "nok" ? "btn-danger" : "btn-outline-secondary"}`}
+                    className={`rounded-xl px-4 py-2 font-semibold transition ${
+                      respostas[item] === "nok"
+                        ? "bg-red-600 text-white"
+                        : "border border-white/20 bg-white/5 text-slate-300 hover:bg-white/10"
+                    }`}
                   >
                     ❌ NOK
                   </button>
-
                   {respostas[item] === "nok" && (
-                    (descricaoNok[item]?.trim() ? (
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 text-decoration-underline fw-bold text-primary ms-2"
-                        onClick={() => { setItemAtual(item); setModalAberto(true); }}
-                      >
-                        Editar descrição do problema
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        className="btn btn-link p-0 text-decoration-underline fw-bold text-primary ms-2"
-                        onClick={() => { setItemAtual(item); setModalAberto(true); }}
-                      >
-                        Adicionar descrição do problema
-                      </button>
-                    ))
+                    <button
+                      type="button"
+                      className="text-sm font-semibold text-sky-400 underline hover:text-sky-300"
+                      onClick={() => { setItemAtual(item); setModalAberto(true); }}
+                    >
+                      {descricaoNok[item]?.trim() ? "Editar descrição do problema" : "Adicionar descrição do problema"}
+                    </button>
                   )}
                 </div>
                 {respostas[item] === "nok" && !descricaoNok[item]?.trim() && enviando && (
-                  <div className="text-danger fw-semibold mt-1 ms-1">
+                  <div className="mt-1 text-sm font-semibold text-red-400">
                     Informe a descrição do problema
                   </div>
                 )}
@@ -581,92 +575,95 @@ if (tipoChecklist === "veiculo") {
           </div>
         )}
 
-        <div className="mb-3">
+        <div className="mb-4">
           <textarea
             placeholder="Observações (opcional)"
-            className="form-control"
+            className="min-h-[70px] w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500"
             value={obs}
             onChange={(e) => setObs(e.target.value)}
-            style={{ minHeight: 70 }}
           />
         </div>
 
         <button
           type="submit"
-          className="btn btn-primary btn-lg w-100 fw-bold"
+          className="w-full rounded-xl bg-sky-600 py-3 font-bold text-white shadow-lg transition hover:bg-sky-500 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={!podeEnviar}
         >
           {enviando ? "Enviando..." : "Enviar Checklist"}
         </button>
       </form>
 
-      {/* Modal descrição NOK */}
       {modalAberto && (
         <div
-          className="modal fade show"
-          tabIndex="-1"
-          style={{
-            display: 'block',
-            backgroundColor: 'rgba(0,0,0,0.55)',
-            position: 'fixed',
-            zIndex: 1050,
-            inset: 0,
-          }}
+          className="fixed inset-0 z-[1050] flex items-center justify-center bg-black/55 p-4"
           aria-modal="true"
           role="dialog"
         >
-          <div className="modal-dialog modal-dialog-centered" style={{ maxWidth: 400 }}>
-            <div className="modal-content rounded-4 shadow-lg">
-              <div className="modal-header border-0 pb-0">
-                <h5 className="modal-title fw-bold text-primary">Descreva o problema</h5>
-                <button type="button" className="btn-close" aria-label="Close"
-                  onClick={() => setModalAberto(false)} />
-              </div>
-              <div className="modal-body">
-                <textarea
-                  className="form-control mb-2"
-                  rows={4}
-                  placeholder={`Descrição para "${itemAtual}"`}
-                  value={descricaoNok[itemAtual] || ""}
-                  onChange={handleDescricaoChange}
-                  autoFocus
+          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#161a24] shadow-xl">
+            <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+              <h5 className="font-bold text-sky-400">Descreva o problema</h5>
+              <button
+                type="button"
+                className="rounded-lg p-1 text-slate-400 hover:bg-white/10 hover:text-white"
+                aria-label="Fechar"
+                onClick={() => setModalAberto(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className="p-4">
+              <textarea
+                className="mb-3 w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-slate-100 placeholder:text-slate-500 focus:ring-2 focus:ring-sky-500"
+                rows={4}
+                placeholder={`Descrição para "${itemAtual}"`}
+                value={descricaoNok[itemAtual] || ""}
+                onChange={handleDescricaoChange}
+                autoFocus
+              />
+              <div className="mb-3">
+                <label className="mb-1 block font-semibold text-slate-200">
+                  Anexar foto/vídeo (opcional, até 15MB)
+                </label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,video/mp4,video/quicktime"
+                  className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-300 file:mr-2 file:rounded-lg file:border-0 file:bg-sky-600 file:px-3 file:py-1 file:text-white"
+                  onChange={handleArquivoChange}
                 />
-                <div className="mb-2">
-                  <label className="form-label fw-bold">Anexar foto/vídeo (opcional, até 15MB)</label>
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,video/mp4,video/quicktime"
-                    className="form-control"
-                    onChange={handleArquivoChange}
-                  />
-                  {erroArquivo && <div className="text-danger mt-1">{erroArquivo}</div>}
-
-                  {arquivoNok[itemAtual] && (
-                    <div className="mt-2">
-                      {arquivoNok[itemAtual].type?.startsWith("image/") ? (
-                        <img
-                          src={URL.createObjectURL(arquivoNok[itemAtual])}
-                          alt="preview"
-                          style={{ maxHeight: 120, borderRadius: 8 }}
-                        />
-                      ) : arquivoNok[itemAtual].type?.startsWith("video/") ? (
-                        <div className="d-flex align-items-center gap-2">
-                          <span className="badge bg-info">Vídeo selecionado</span>
-                          <span>{arquivoNok[itemAtual].name}</span>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-                </div>
+                {erroArquivo && <div className="mt-1 text-sm text-red-400">{erroArquivo}</div>}
+                {arquivoNok[itemAtual] && (
+                  <div className="mt-2">
+                    {arquivoNok[itemAtual].type?.startsWith("image/") ? (
+                      <img
+                        src={URL.createObjectURL(arquivoNok[itemAtual])}
+                        alt="preview"
+                        className="max-h-[120px] rounded-lg"
+                      />
+                    ) : arquivoNok[itemAtual].type?.startsWith("video/") ? (
+                      <div className="flex items-center gap-2 text-sm text-slate-400">
+                        <span className="rounded bg-sky-500/20 px-2 py-0.5 text-sky-300">Vídeo selecionado</span>
+                        <span>{arquivoNok[itemAtual].name}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
               </div>
-              <div className="modal-footer border-0 pt-0 d-flex justify-content-end">
-                <button className="btn btn-secondary" onClick={() => setModalAberto(false)}>
-                  Cancelar
-                </button>
-                <button className="btn btn-primary fw-bold" onClick={salvarDescricao}>
-                  Salvar
-                </button>
-              </div>
+            </div>
+            <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
+              <button
+                type="button"
+                className="rounded-xl bg-slate-600 px-4 py-2 font-medium text-white hover:bg-slate-500"
+                onClick={() => setModalAberto(false)}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="rounded-xl bg-sky-600 px-4 py-2 font-bold text-white hover:bg-sky-500"
+                onClick={salvarDescricao}
+              >
+                Salvar
+              </button>
             </div>
           </div>
         </div>

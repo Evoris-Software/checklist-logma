@@ -1,0 +1,138 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "abastecimentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "userId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "criadoEm",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "abastecimentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "veiculoId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dataAbastecimento",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "checklists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "motorista",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dataHora",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "checklists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "selecionadoId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dataHora",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "checklists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "usuarioUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dataHora",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "checklists",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "veiculo",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "dataHora",
+          "order": "DESCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "DESCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    },
+    {
+      "collectionGroup": "veiculos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "nome",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "__name__",
+          "order": "ASCENDING"
+        }
+      ],
+      "density": "SPARSE_ALL"
+    }
+  ],
+  "fieldOverrides": []
+}

@@ -20,6 +20,7 @@ function initialForm() {
     // 🔹 novos (obrigatórios)
     tipoFrota: "",          // "leve" | "pesada"
     tipoCombustivel: "",    // "gasolina" | "diesel" | "etanol" | ...
+    kmAtual: "",
   };
 }
 
@@ -31,6 +32,8 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(initialForm());
   const [filter, setFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 25;
 
   useEffect(() => {
     const unsub = listenVeiculos((list) => {
@@ -66,6 +69,19 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
     });
   }, [filter, veiculos]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIndex = (currentPage - 1) * pageSize;
+  const pageItems = filtered.slice(startIndex, startIndex + pageSize);
+
+  useEffect(() => {
+    setPage(1);
+  }, [filter]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   function openCreate() {
     setEditingId(null);
     setForm({
@@ -88,6 +104,7 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
       // 🔹 carregar obrigatórios
       tipoFrota: item.tipoFrota || "",
       tipoCombustivel: item.tipoCombustivel || "",
+      kmAtual: item.kmAtual ?? "",
     });
     setShowForm(true);
   }
@@ -121,6 +138,9 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
     payload.placa = payload.placa.toUpperCase();
     payload.tipoFrota = String(payload.tipoFrota).toLowerCase();
     payload.tipoCombustivel = String(payload.tipoCombustivel).toLowerCase();
+    payload.kmAtual = payload.kmAtual
+      ? Number(String(payload.kmAtual).replace(/\D/g, "")) || 0
+      : null;
 
     try {
       if (editingId) {
@@ -150,70 +170,87 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
     }
   }
 
+  const statusBadgeClass = (status) => {
+    if (status === "ativo") return "bg-emerald-500/20 text-emerald-400";
+    if (status === "manutencao") return "bg-amber-500/20 text-amber-400";
+    return "bg-slate-500/20 text-slate-300";
+  };
+
+  const statusLabel = (status) => {
+    if (status === "ativo") return "Ativo";
+    if (status === "manutencao") return "Em manutenção";
+    return "Inativo";
+  };
+
   return (
-    <div className="card shadow-sm mb-4">
-      <div className="card-header d-flex align-items-center justify-content-between">
-        <h5 className="card-title fw-bold text-primary mb-3 d-flex align-items-center">
+    <div className="mb-5 rounded-2xl border border-white/10 bg-[#161a24] shadow-lg ring-1 ring-white/5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-4">
+        <h5 className="flex items-center text-lg font-bold text-sky-400">
           Veículos cadastrados
-          <span className="badge bg-primary ms-2">{veiculos.length}</span>
+          <span className="ml-2 rounded-lg bg-sky-500/20 px-2 py-0.5 text-sm font-bold text-sky-300">{veiculos.length}</span>
         </h5>
-        <div className="d-flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <input
             type="text"
-            className="form-control"
+            className="w-full min-w-[260px] rounded-xl border border-white/10 bg-black/30 px-3 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
             placeholder="Filtrar (nome/placa/tipo/frota/combustível)"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
-            style={{ maxWidth: 320 }}
           />
-          <button className="btn btn-primary" onClick={openCreate}>
+          <button className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500" onClick={openCreate}>
             + Cadastrar veículo
           </button>
         </div>
       </div>
 
-      <div className="card-body p-0">
+      <div className="p-0">
         {loading ? (
-          <div className="p-3">Carregando...</div>
+          <div className="p-4 text-slate-400">Carregando...</div>
         ) : filtered.length === 0 ? (
-          <div className="p-3">Nenhum veículo encontrado.</div>
+          <div className="p-4 text-slate-400">Nenhum veículo encontrado.</div>
         ) : (
-          <div className="table-responsive">
-            <table className="table table-hover mb-0">
-              <thead className="table-light">
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-sm">
+              <thead className="bg-black/20 text-left text-xs uppercase tracking-wide text-slate-400">
                 <tr>
-                  <th>Nome/Modelo</th>
-                  <th>Placa</th>
-                  <th>Tipo</th>
-                  <th>Descrição</th>
-                  <th>Frota</th>
-                  <th>Status</th>
-                  <th>Frota (leve/pesada)</th>
-                  <th>Combustível</th>
-                  <th style={{ width: 160 }}>Ações</th>
+                  <th className="px-3 py-2">Nome/Modelo</th>
+                  <th className="px-3 py-2">Placa</th>
+                  <th className="px-3 py-2">Tipo</th>
+                  <th className="px-3 py-2">Descrição</th>
+                  <th className="px-3 py-2">Frota</th>
+                  <th className="px-3 py-2">KM Atual</th>
+                  <th className="px-3 py-2">Status</th>
+                  <th className="px-3 py-2">Frota</th>
+                  <th className="px-3 py-2">Combustível</th>
+                  <th className="px-3 py-2">Ações</th>
                 </tr>
               </thead>
-              <tbody>
-                {filtered.map((v) => (
-                  <tr key={v.id}>
-                    <td>{v.nome || "-"}</td>
-                    <td>{(v.placa || "").toUpperCase() || "-"}</td>
-                    <td>{v.tipo || "-"}</td>
-                    <td>{v.descricao || "-"}</td>
-                    <td>{v.frotaNumero || "-"}</td>
-                    <td>
-                      {v.status === "ativo" && <span className="badge bg-success">Ativo</span>}
-                      {v.status === "manutencao" && <span className="badge bg-warning text-dark">Em manutenção</span>}
-                      {v.status === "inativo" && <span className="badge bg-secondary">Inativo</span>}
+              <tbody className="divide-y divide-white/5">
+                {pageItems.map((v) => (
+                  <tr key={v.id} className="hover:bg-white/5">
+                    <td className="px-3 py-2 text-slate-200">{v.nome || "-"}</td>
+                    <td className="px-3 py-2 font-medium text-slate-200">{(v.placa || "").toUpperCase() || "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">{v.tipo || "-"}</td>
+                    <td className="max-w-[240px] truncate px-3 py-2 text-slate-400">{v.descricao || "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">{v.frotaNumero || "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {v.kmAtual != null && v.kmAtual !== ""
+                        ? Number(v.kmAtual).toLocaleString("pt-BR")
+                        : "—"}
                     </td>
-                    <td className="text-capitalize">{v.tipoFrota || "-"}</td>
-                    <td className="text-capitalize">{v.tipoCombustivel || "-"}</td>
-                    <td>
-                      <div className="d-flex gap-2">
-                        <button className="btn btn-sm btn-outline-primary" onClick={() => openEdit(v)}>
+                    <td className="px-3 py-2">
+                      <span className={`rounded-lg px-2 py-0.5 text-xs font-semibold ${statusBadgeClass(v.status)}`}>
+                        {statusLabel(v.status)}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2 capitalize text-slate-300">{v.tipoFrota || "-"}</td>
+                    <td className="px-3 py-2 capitalize text-slate-300">{v.tipoCombustivel || "-"}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex gap-2">
+                        <button className="rounded-lg border border-sky-500/40 bg-sky-500/10 px-2 py-1 text-xs font-medium text-sky-400 hover:bg-sky-500/20" onClick={() => openEdit(v)}>
                           Editar
                         </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDelete(v.id)}>
+                        <button className="rounded-lg border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400 hover:bg-red-500/20" onClick={() => handleDelete(v.id)}>
                           Excluir
                         </button>
                       </div>
@@ -226,87 +263,98 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
         )}
       </div>
 
+      {filtered.length > pageSize && (
+        <div className="flex items-center justify-end gap-3 px-4 py-3 text-xs text-slate-400">
+          <span>
+            Página {currentPage} de {totalPages}
+          </span>
+          <div className="flex gap-1">
+            <button
+              type="button"
+              className="rounded-lg border border-white/10 px-2 py-1 text-xs text-slate-200 disabled:opacity-40"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              className="rounded-lg border border-white/10 px-2 py-1 text-xs text-slate-200 disabled:opacity-40"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Próxima
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Modal com backdrop embutido + z-index garantido */}
       {showForm && (
         <div
           role="dialog"
           aria-modal="true"
           onClick={() => setShowForm(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,.55)", // backdrop
-            zIndex: 2000,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 16
-          }}
+          className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/60 p-4"
         >
           <div
-            className="modal-dialog modal-lg"
+            className="w-full max-w-4xl"
             onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 900, width: "100%" }}
           >
             <div
-              className="modal-content rounded-3 shadow-lg"
-              style={{
-                backgroundColor: "#ffffff",
-                color: "#212529",
-                zIndex: 2001
-              }}
+              className="rounded-2xl border border-white/10 bg-[#161a24] text-slate-100 shadow-xl"
             >
               <form onSubmit={handleSubmit}>
-                <div className="modal-header" style={{ padding: "1.5rem 1.5rem" }}>
-                  <h5 className="modal-title">
+                <div className="flex items-center justify-between border-b border-white/10 px-6 py-4">
+                  <h5 className="text-lg font-semibold text-sky-400">
                     {editingId ? "Editar veículo" : "Cadastrar veículo"}
                   </h5>
-                  <button type="button" className="btn-close" onClick={() => setShowForm(false)} />
+                  <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white/10" onClick={() => setShowForm(false)}>×</button>
                 </div>
 
-                <div className="modal-body" style={{ padding: "1.5rem" }}>
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label">Nome/Modelo *</label>
+                <div className="px-6 py-5">
+                  <div className="grid gap-4 md:grid-cols-12">
+                    <div className="md:col-span-6">
+                      <label className="mb-1 block text-xs text-slate-400">Nome/Modelo *</label>
                       <input
-                        className="form-control"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={form.nome}
                         onChange={(e) => setForm((s) => ({ ...s, nome: e.target.value }))}
                         required
                       />
                     </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Placa *</label>
+                    <div className="md:col-span-3">
+                      <label className="mb-1 block text-xs text-slate-400">Placa *</label>
                       <input
-                        className="form-control text-uppercase"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-uppercase text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={form.placa}
                         onChange={(e) => setForm((s) => ({ ...s, placa: e.target.value.toUpperCase() }))}
                         required
                       />
                     </div>
-                    <div className="col-md-3">
-                      <label className="form-label">Frota/Nº *</label>
+                    <div className="md:col-span-3">
+                      <label className="mb-1 block text-xs text-slate-400">Frota/Nº *</label>
                       <input
-                        className="form-control"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={form.frotaNumero}
                         onChange={(e) => setForm((s) => ({ ...s, frotaNumero: e.target.value }))}
                         required
                       />
                     </div>
 
-                    <div className="col-md-4">
-                      <label className="form-label">Tipo</label>
+                    <div className="md:col-span-4">
+                      <label className="mb-1 block text-xs text-slate-400">Tipo</label>
                       <input
-                        className="form-control"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         placeholder="veiculo / equipamento / gerador / empilhadeira..."
                         value={form.tipo}
                         onChange={(e) => setForm((s) => ({ ...s, tipo: e.target.value }))}
                       />
                     </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Status</label>
+                    <div className="md:col-span-4">
+                      <label className="mb-1 block text-xs text-slate-400">Status</label>
                       <select
-                        className="form-select"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={form.status}
                         onChange={(e) => setForm((s) => ({ ...s, status: e.target.value }))}
                       >
@@ -317,10 +365,10 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
                     </div>
 
                     {/* 🔹 NOVOS CAMPOS OBRIGATÓRIOS */}
-                    <div className="col-md-4">
-                      <label className="form-label">Tipo de Frota *</label>
+                    <div className="md:col-span-4">
+                      <label className="mb-1 block text-xs text-slate-400">Tipo de Frota *</label>
                       <select
-                        className="form-select"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={form.tipoFrota}
                         onChange={(e) => setForm((s) => ({ ...s, tipoFrota: e.target.value }))}
                         required
@@ -330,10 +378,10 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
                         <option value="pesada">Pesada</option>
                       </select>
                     </div>
-                    <div className="col-md-4">
-                      <label className="form-label">Combustível *</label>
+                    <div className="md:col-span-4">
+                      <label className="mb-1 block text-xs text-slate-400">Combustível *</label>
                       <select
-                        className="form-select"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={form.tipoCombustivel}
                         onChange={(e) => setForm((s) => ({ ...s, tipoCombustivel: e.target.value }))}
                         required
@@ -344,23 +392,33 @@ export default function VeiculosSection({ onAfterChange, defaultTipoFrota = "" }
                       </select>
                     </div>
 
-                    <div className="col-md-12">
-                      <label className="form-label">Descrição</label>
+                    <div className="md:col-span-12">
+                      <label className="mb-1 block text-xs text-slate-400">Descrição</label>
                       <textarea
-                        className="form-control"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         rows={3}
                         value={form.descricao}
                         onChange={(e) => setForm((s) => ({ ...s, descricao: e.target.value }))}
                       />
                     </div>
+                    <div className="md:col-span-4">
+                      <label className="mb-1 block text-xs text-slate-400">KM Atual (opcional)</label>
+                      <input
+                        type="number"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
+                        value={form.kmAtual}
+                        onChange={(e) => setForm((s) => ({ ...s, kmAtual: e.target.value }))}
+                        placeholder="Ex.: 123456"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="modal-footer" style={{ padding: "1.5rem" }}>
-                  <button type="button" className="btn btn-outline-secondary" onClick={() => setShowForm(false)}>
+                <div className="flex justify-end gap-2 border-t border-white/10 px-6 py-4">
+                  <button type="button" className="rounded-xl border border-white/20 bg-white/5 px-4 py-2 text-sm font-medium text-slate-300 hover:bg-white/10" onClick={() => setShowForm(false)}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500">
                     {editingId ? "Salvar alterações" : "Cadastrar"}
                   </button>
                 </div>

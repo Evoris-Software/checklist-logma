@@ -1,0 +1,36 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helpers
+    function isAuthed() {
+      return request.auth != null;
+    }
+    // Admin via custom claims (defina no Auth): auth.token.admin == true
+    function isAdmin() {
+      return isAuthed() && request.auth.token.admin == true;
+    }
+
+    // =========================
+    // USUÁRIOS
+    // - leitura pública (para login buscar por nome -> e-mail)
+    // - escrita apenas pelo próprio usuário (mesmo uid) ou admin
+    // =========================
+    match /usuarios/{userId} {
+      // leitura liberada (get/list) para qualquer pessoa
+      allow read: if true;
+
+      // criar/atualizar/apagar: somente o dono do doc ou admin
+      allow write: if isAuthed() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // =========================
+    // OUTRAS COLEÇÕES (padrão)
+    // - exigem autenticação para qualquer operação
+    // =========================
+    // Observação: isso cobre todas as coleções que não casam com /usuarios/{userId}
+    match /{document=**} {
+      allow read, write: if isAuthed();
+    }
+  }
+}

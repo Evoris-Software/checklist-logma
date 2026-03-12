@@ -124,23 +124,23 @@ export default function EditarAbastecimentoModal({
 
   if (!open) return null;
   return (
-    <div className="modal d-block" tabIndex="-1" style={{ background: "rgba(0,0,0,.5)" }}>
-      <div className="modal-dialog modal-lg modal-dialog-centered">
-        <div className="modal-content">
-          <div className="modal-header border-0">
-            <h5 className="modal-title fw-bold">Editar abastecimento</h5>
-            <button type="button" className="btn-close" onClick={onClose} />
+    <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/60 p-4" onClick={onClose}>
+      <div className="w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+        <div className="rounded-2xl border border-white/10 bg-[#161a24] text-slate-100 shadow-xl">
+          <div className="flex items-center justify-between border-b border-white/10 px-5 py-4">
+            <h5 className="text-lg font-bold text-sky-400">Editar abastecimento</h5>
+            <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white/10" onClick={onClose}>×</button>
           </div>
 
           <form onSubmit={handleSalvar}>
-            <div className="modal-body">
-              {erro && <div className="alert alert-danger py-2">{erro}</div>}
+            <div className="px-5 py-4">
+              {erro && <div className="mb-3 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-400">{erro}</div>}
 
-              <div className="row g-3">
-                <div className="col-md-6">
-                  <label className="form-label">Veículo *</label>
+              <div className="grid gap-3 md:grid-cols-12">
+                <div className="md:col-span-6">
+                  <label className="mb-1 block text-xs text-slate-400">Veículo *</label>
                   <select
-                    className="form-select"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.veiculoId}
                     onChange={(e) => setForm((f) => ({ ...f, veiculoId: e.target.value }))}
                     required
@@ -154,75 +154,75 @@ export default function EditarAbastecimentoModal({
                   </select>
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">Data *</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">Data *</label>
                   <input
                     type="date"
-                    className="form-control"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.data}
                     onChange={(e) => setForm((f) => ({ ...f, data: e.target.value }))}
                     required
                   />
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">KM Atual</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">KM Atual</label>
                   <input
                     type="number"
-                    className="form-control"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.kmAtual}
                     onChange={(e) => setForm((f) => ({ ...f, kmAtual: e.target.value }))}
                     placeholder="km"
                   />
                   {ultimoKm != null && (
-                    <div className="form-text">Último KM conhecido: {ultimoKm}</div>
+                    <div className="mt-1 text-xs text-slate-500">Último KM conhecido: {ultimoKm}</div>
                   )}
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">Litros *</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">Litros *</label>
                   <input
-                    type="number" step="0.01" className="form-control"
+                    type="number" step="0.01" className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.litros}
                     onChange={(e) => setForm((f) => ({ ...f, litros: e.target.value }))}
                     required
                   />
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">Preço por litro (R$) *</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">Preço por litro (R$) *</label>
                   <input
-                    type="number" step="0.001" className="form-control"
+                    type="number" step="0.001" className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.precoPorLitro}
                     onChange={(e) => setForm((f) => ({ ...f, precoPorLitro: e.target.value }))}
                     required
                   />
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">KM/L (auto)</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">KM/L (auto)</label>
                   <input
                     type="text"
-                    className="form-control"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-300"
                     value={form.kmPorLitro}
                     readOnly
                     placeholder="auto"
                   />
                 </div>
 
-                <div className="col-md-6">
-                  <label className="form-label">Posto (opcional)</label>
+                <div className="md:col-span-6">
+                  <label className="mb-1 block text-xs text-slate-400">Posto (opcional)</label>
                   <input
-                    className="form-control"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.posto}
                     onChange={(e) => setForm((f) => ({ ...f, posto: e.target.value }))}
                   />
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">Tipo de Frota *</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">Tipo de Frota *</label>
                   <select
-                    className="form-select"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.tipoFrota}
                     onChange={(e) => setForm((f) => ({ ...f, tipoFrota: e.target.value }))}
                     required
@@ -233,10 +233,10 @@ export default function EditarAbastecimentoModal({
                   </select>
                 </div>
 
-                <div className="col-md-3">
-                  <label className="form-label">Combustível *</label>
+                <div className="md:col-span-3">
+                  <label className="mb-1 block text-xs text-slate-400">Combustível *</label>
                   <select
-                    className="form-select"
+                    className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                     value={form.tipoCombustivel}
                     onChange={(e) => setForm((f) => ({ ...f, tipoCombustivel: e.target.value }))}
                     required
@@ -250,11 +250,11 @@ export default function EditarAbastecimentoModal({
               </div>
             </div>
 
-            <div className="modal-footer border-0">
-              <button type="button" className="btn btn-outline-secondary" onClick={onClose} disabled={salvando}>
+            <div className="flex justify-end gap-2 border-t border-white/10 px-5 py-4">
+              <button type="button" className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-white/10" onClick={onClose} disabled={salvando}>
                 Cancelar
               </button>
-              <button type="submit" className="btn btn-primary" disabled={salvando}>
+              <button type="submit" className="rounded-xl bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50" disabled={salvando}>
                 {salvando ? "Salvando…" : "Salvar alterações"}
               </button>
             </div>

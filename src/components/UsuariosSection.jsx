@@ -173,59 +173,64 @@ export default function UsuariosSection({ onReload, usuariosExternos }) {
     }
   };
 
-  return (
-    <div className="card bg-light text-dark shadow border-0 mb-5">
-      <div className="card-body">
-        {/* Cabeçalho + botão à direita */}
-        <h5 className="card-title fw-bold text-primary mb-3 d-flex align-items-center">
-          Usuários cadastrados <span className="badge bg-primary ms-2">{usuarios.length}</span>
-          <button
-            className="btn btn-success fw-bold ms-auto"
-            style={{ borderRadius: 10, fontSize: 15 }}
-            onClick={openCreate}
-            type="button"
-          >
-            + Cadastrar novo usuário
-          </button>
-        </h5>
+  const roleLabel = (role) => {
+    if (role === "motorista") return "Motorista";
+    if (role === "operador_empilhadeira") return "Operador de Empilhadeira";
+    if (role === "operador_gerador") return "Operador de Gerador";
+    if (role === "vendedor") return "Vendedor";
+    if (role === "admin") return "Admin";
+    return role || "-";
+  };
 
-        {/* Lista/Tabela */}
+  return (
+    <div className="mb-5 rounded-2xl border border-white/10 bg-[#161a24] shadow-lg ring-1 ring-white/5">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 p-4">
+        <h5 className="flex items-center text-lg font-bold text-sky-400">
+          Usuários cadastrados
+          <span className="ml-2 rounded-lg bg-sky-500/20 px-2 py-0.5 text-sm font-bold text-sky-300">{usuarios.length}</span>
+        </h5>
+        <button
+          className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500"
+          onClick={openCreate}
+          type="button"
+        >
+          + Cadastrar novo usuário
+        </button>
+      </div>
+
+      <div className="p-4">
         {loading ? (
-          <div className="text-secondary">Carregando...</div>
+          <div className="text-slate-400">Carregando...</div>
         ) : usuarios.length === 0 ? (
-          <div>Nenhum usuário cadastrado.</div>
+          <div className="text-slate-400">Nenhum usuário cadastrado.</div>
         ) : (
-          <div className="table-responsive">
-            <table className="table table-sm align-middle">
-              <thead>
+          <div className="overflow-x-auto rounded-xl border border-white/10 bg-black/20">
+            <table className="min-w-full text-sm align-middle">
+              <thead className="bg-black/20 text-left text-xs uppercase tracking-wide text-slate-400">
                 <tr>
-                  <th>Nome</th>
-                  <th>Email</th>
-                  <th>Função</th>
-                  <th style={{ width: 160 }} className="text-end">Ações</th>
+                  <th className="px-3 py-2">Nome</th>
+                  <th className="px-3 py-2">Email</th>
+                  <th className="px-3 py-2">Função</th>
+                  <th className="px-3 py-2 text-right">Ações</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/5">
                 {usuarios.map(u => (
-                  <tr key={u.id}>
-                    <td className="fw-semibold">{u.nome || "-"}</td>
-                    <td>{u.email || "-"}</td>
-                    <td>
-                      {u.role === "motorista" ? "Motorista" :
-                       u.role === "operador_empilhadeira" ? "Operador de Empilhadeira" :
-                       u.role === "operador_gerador" ? "Operador de Gerador" :
-                       u.role === "vendedor" ? "Vendedor" :  // ← exibindo "vendedor"
-                       u.role || "-"}
+                  <tr key={u.id} className="hover:bg-white/5">
+                    <td className="px-3 py-2 font-semibold text-slate-200">{u.nome || "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">{u.email || "-"}</td>
+                    <td className="px-3 py-2 text-slate-300">
+                      {roleLabel(u.role)}
                     </td>
-                    <td className="text-end">
+                    <td className="px-3 py-2 text-right">
                       <button
-                        className="btn btn-sm btn-outline-primary me-2"
+                        className="mr-2 rounded-lg border border-sky-500/40 bg-sky-500/10 px-2 py-1 text-xs font-medium text-sky-400 hover:bg-sky-500/20"
                         onClick={() => openEdit(u)}
                       >
                         Editar
                       </button>
                       <button
-                        className="btn btn-sm btn-outline-danger"
+                        className="rounded-lg border border-red-500/40 bg-red-500/10 px-2 py-1 text-xs font-medium text-red-400 hover:bg-red-500/20"
                         onClick={() => handleDelete(u)}
                       >
                         Excluir
@@ -239,62 +244,52 @@ export default function UsuariosSection({ onReload, usuariosExternos }) {
         )}
       </div>
 
-      {/* ===== MODAL: Editar Usuário ===== */}
       {editOpen && editing && (
         <div
-          className="modal fade show"
-          tabIndex="-1"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0,0,0,0.55)",
-            position: "fixed",
-            inset: 0,
-            zIndex: 1090
-          }}
+          className="fixed inset-0 z-[1090] flex items-center justify-center bg-black/60 p-4"
           aria-modal="true"
           role="dialog"
           onClick={closeEdit}
         >
           <div
-            className="modal-dialog modal-dialog-centered"
-            style={{ maxWidth: 460 }}
+            className="w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-content rounded-4 shadow-lg" style={{ padding: 2 }}>
+            <div className="rounded-2xl border border-white/10 bg-[#161a24] p-1 shadow-xl">
               <form onSubmit={handleSave}>
-                <div className="modal-header border-0 pb-0">
-                  <h5 className="modal-title fw-bold text-primary">Editar Usuário</h5>
-                  <button type="button" className="btn-close" onClick={closeEdit} />
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                  <h5 className="font-bold text-sky-400">Editar Usuário</h5>
+                  <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white/10" onClick={closeEdit}>×</button>
                 </div>
-                <div className="modal-body">
-                  {erro && <div className="alert alert-danger py-2">{erro}</div>}
-                  {okMsg && <div className="alert alert-success py-2">{okMsg}</div>}
+                <div className="px-4 py-4">
+                  {erro && <div className="mb-3 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-400">{erro}</div>}
+                  {okMsg && <div className="mb-3 rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-400">{okMsg}</div>}
 
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label className="form-label">Nome</label>
+                  <div className="grid gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">Nome</label>
                       <input
-                        className="form-control form-control-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={editing.nome}
                         onChange={(e) => setEditing(prev => ({ ...prev, nome: e.target.value }))}
                         required
                         autoFocus
                       />
                     </div>
-                    <div className="col-12">
-                      <label className="form-label">E-mail</label>
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">E-mail</label>
                       <input
                         type="email"
-                        className="form-control form-control-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={editing.email}
                         onChange={(e) => setEditing(prev => ({ ...prev, email: e.target.value }))}
                         required
                       />
                     </div>
-                    <div className="col-12">
-                      <label className="form-label">Função</label>
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">Função</label>
                       <select
-                        className="form-select form-select-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={editing.role}
                         onChange={(e) => setEditing(prev => ({ ...prev, role: e.target.value }))}
                         required
@@ -302,17 +297,17 @@ export default function UsuariosSection({ onReload, usuariosExternos }) {
                         <option value="motorista">Motorista</option>
                         <option value="operador_empilhadeira">Operador de Empilhadeira</option>
                         <option value="operador_gerador">Operador de Gerador</option>
-                        <option value="vendedor">Vendedor</option> {/* ← opção adicionada */}
+                        <option value="vendedor">Vendedor</option>
                       </select>
                     </div>
                   </div>
                 </div>
 
-                <div className="modal-footer border-0 pt-0">
-                  <button type="button" className="btn btn-secondary" onClick={closeEdit}>
+                <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
+                  <button type="button" className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-white/10" onClick={closeEdit}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn btn-primary fw-bold" disabled={saving}>
+                  <button type="submit" className="rounded-xl bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50" disabled={saving}>
                     {saving ? "Salvando..." : "Salvar alterações"}
                   </button>
                 </div>
@@ -322,72 +317,62 @@ export default function UsuariosSection({ onReload, usuariosExternos }) {
         </div>
       )}
 
-      {/* ===== MODAL: Cadastrar Usuário ===== */}
       {cadOpen && (
         <div
-          className="modal fade show"
-          tabIndex="-1"
-          style={{
-            display: "block",
-            backgroundColor: "rgba(0,0,0,0.55)",
-            position: "fixed",
-            inset: 0,
-            zIndex: 1090
-          }}
+          className="fixed inset-0 z-[1090] flex items-center justify-center bg-black/60 p-4"
           aria-modal="true"
           role="dialog"
           onClick={closeCreate}
         >
           <div
-            className="modal-dialog modal-dialog-centered"
-            style={{ maxWidth: 460 }}
+            className="w-full max-w-md"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="modal-content rounded-4 shadow-lg" style={{ padding: 2 }}>
+            <div className="rounded-2xl border border-white/10 bg-[#161a24] p-1 shadow-xl">
               <form onSubmit={handleCreate}>
-                <div className="modal-header border-0 pb-0">
-                  <h5 className="modal-title fw-bold text-primary">Cadastrar Usuário</h5>
-                  <button type="button" className="btn-close" onClick={closeCreate} />
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3">
+                  <h5 className="font-bold text-sky-400">Cadastrar Usuário</h5>
+                  <button type="button" className="rounded-lg p-1 text-slate-400 hover:bg-white/10" onClick={closeCreate}>×</button>
                 </div>
-                <div className="modal-body">
-                  {cadErro && <div className="alert alert-danger py-2">{cadErro}</div>}
-                  {cadOk && <div className="alert alert-success py-2">{cadOk}</div>}
+                <div className="px-4 py-4">
+                  {cadErro && <div className="mb-3 rounded-lg bg-red-500/20 px-3 py-2 text-sm text-red-400">{cadErro}</div>}
+                  {cadOk && <div className="mb-3 rounded-lg bg-emerald-500/20 px-3 py-2 text-sm text-emerald-400">{cadOk}</div>}
 
-                  <div className="row g-3">
-                    <div className="col-12">
-                      <label className="form-label">Nome</label>
+                  <div className="grid gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">Nome</label>
                       <input
-                        className="form-control form-control-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={cadNome}
                         onChange={(e) => setCadNome(e.target.value)}
                         required
                         autoFocus
                       />
                     </div>
-                    <div className="col-12">
-                      <label className="form-label">E-mail</label>
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">E-mail</label>
                       <input
                         type="email"
-                        className="form-control form-control-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={cadEmail}
                         onChange={(e) => setCadEmail(e.target.value)}
                         required
                       />
                     </div>
-                    <div className="col-12">
-                      <label className="form-label">Senha</label>
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">Senha</label>
                       <input
                         type="password"
-                        className="form-control form-control-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={cadSenha}
                         onChange={(e) => setCadSenha(e.target.value)}
                         required
                       />
                     </div>
-                    <div className="col-12">
-                      <label className="form-label">Função</label>
+                    <div>
+                      <label className="mb-1 block text-xs text-slate-400">Função</label>
                       <select
-                        className="form-select form-select-lg"
+                        className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                         value={cadRole}
                         onChange={(e) => setCadRole(e.target.value)}
                         required
@@ -401,11 +386,11 @@ export default function UsuariosSection({ onReload, usuariosExternos }) {
                   </div>
                 </div>
 
-                <div className="modal-footer border-0 pt-0">
-                  <button type="button" className="btn btn-secondary" onClick={closeCreate}>
+                <div className="flex justify-end gap-2 border-t border-white/10 px-4 py-3">
+                  <button type="button" className="rounded-xl border border-white/20 bg-white/5 px-3 py-1.5 text-sm font-medium text-slate-300 hover:bg-white/10" onClick={closeCreate}>
                     Cancelar
                   </button>
-                  <button type="submit" className="btn btn-primary fw-bold" disabled={cadSaving}>
+                  <button type="submit" className="rounded-xl bg-sky-600 px-3 py-1.5 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50" disabled={cadSaving}>
                     {cadSaving ? "Salvando..." : "Registrar"}
                   </button>
                 </div>

@@ -198,25 +198,25 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
 
   // Se ainda estiver resolvendo roles, segura o render do form (evita falso “sem permissão”)
   if (loadingRoles) {
-    return <div className="alert alert-info">Carregando permissões…</div>;
+    return <div className="rounded-xl border border-sky-500/30 bg-sky-500/10 px-3 py-2 text-sm text-sky-300">Carregando permissões…</div>;
   }
 
   const canUse = isAdmin || isMotorista || isVendedor;
 
   if (!canUse) {
-    return <div className="alert alert-warning">Você não tem permissão para lançar abastecimentos.</div>;
+    return <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-sm text-amber-300">Você não tem permissão para lançar abastecimentos.</div>;
   }
 
   return (
-    <div className="card shadow-sm">
-      <div className="card-body">
-        <h5 className="card-title fw-bold">Lançar Abastecimento</h5>
+    <div className="rounded-2xl border border-white/10 bg-[#161a24] p-5 shadow-lg ring-1 ring-white/5">
+      <div>
+        <h5 className="mb-4 text-xl font-bold text-sky-400">Lançar Abastecimento</h5>
 
         {/* Filtro de frota conforme roles */}
         <div className="mb-3">
-          <label className="form-label">Frota</label>
+          <label className="mb-1 block text-xs text-slate-400">Frota</label>
           <select
-            className="form-select"
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             value={tipoFrota}
             onChange={e => setTipoFrota(e.target.value)}
           >
@@ -224,7 +224,7 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
             {(isAdmin || isVendedor) && <option value="leve">Leve</option>}
             {(isAdmin || isMotorista) && <option value="pesada">Pesada</option>}
           </select>
-          <div className="form-text">
+          <div className="mt-1 text-xs text-slate-500">
             {isAdmin ? "Admin pode lançar em leve e pesada." :
              isMotorista && isVendedor ? "Você pode lançar em leve e pesada." :
              isMotorista ? "Você pode lançar somente em frota pesada." :
@@ -234,9 +234,9 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
 
         {/* Busca por placa/número da frota */}
         <div className="mb-2">
-          <label className="form-label">Pesquisar veículo (placa ou Nº frota)</label>
+          <label className="mb-1 block text-xs text-slate-400">Pesquisar veículo (placa ou Nº frota)</label>
           <input
-            className="form-control"
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-sky-500"
             placeholder="Ex.: ABC1D23 ou 016"
             value={busca}
             onChange={e => setBusca(e.target.value)}
@@ -246,9 +246,9 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
 
         {/* Lista de veículos */}
         <div className="mb-3">
-          <label className="form-label">Veículo</label>
+          <label className="mb-1 block text-xs text-slate-400">Veículo</label>
           <select
-            className="form-select"
+            className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
             value={veiculoId}
             onChange={e => setVeiculoId(e.target.value)}
             disabled={!tipoFrota}
@@ -263,38 +263,38 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
         </div>
 
         {/* Campos do abastecimento */}
-        <div className="row g-3">
-          <div className="col-md-4">
-            <label className="form-label">Combustível</label>
-            <select className="form-select" value={tipoCombustivel} onChange={e => setTipoCombustivel(e.target.value)}>
+        <div className="grid gap-3 md:grid-cols-12">
+          <div className="md:col-span-4">
+            <label className="mb-1 block text-xs text-slate-400">Combustível</label>
+            <select className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" value={tipoCombustivel} onChange={e => setTipoCombustivel(e.target.value)}>
               <option value="">Selecione...</option>
               <option value="diesel">Diesel S10/S500</option>
               <option value="gasolina">Gasolina</option>
             </select>
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Litros</label>
-            <input type="number" className="form-control" value={litros} onChange={e => setLitros(e.target.value)} min="0" step="0.01" />
+          <div className="md:col-span-4">
+            <label className="mb-1 block text-xs text-slate-400">Litros</label>
+            <input type="number" className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" value={litros} onChange={e => setLitros(e.target.value)} min="0" step="0.01" />
           </div>
-          <div className="col-md-4">
-            <label className="form-label">Preço por litro</label>
-            <input type="number" className="form-control" value={precoPorLitro} onChange={e => setPrecoPorLitro(e.target.value)} min="0" step="0.01" />
+          <div className="md:col-span-4">
+            <label className="mb-1 block text-xs text-slate-400">Preço por litro</label>
+            <input type="number" className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" value={precoPorLitro} onChange={e => setPrecoPorLitro(e.target.value)} min="0" step="0.01" />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Posto</label>
-            <input className="form-control" value={posto} onChange={e => setPosto(e.target.value)} />
+          <div className="md:col-span-6">
+            <label className="mb-1 block text-xs text-slate-400">Posto</label>
+            <input className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" value={posto} onChange={e => setPosto(e.target.value)} />
           </div>
-          <div className="col-md-6">
-            <label className="form-label">Data e hora</label>
-            <input type="datetime-local" className="form-control" value={dataHora} onChange={e => setDataHora(e.target.value)} />
+          <div className="md:col-span-6">
+            <label className="mb-1 block text-xs text-slate-400">Data e hora</label>
+            <input type="datetime-local" className="w-full rounded-xl border border-white/10 bg-black/30 px-3 py-2.5 text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500" value={dataHora} onChange={e => setDataHora(e.target.value)} />
           </div>
         </div>
 
-        <div className="mt-4 d-flex gap-2">
-          <button className="btn btn-primary" onClick={handleSubmit} disabled={saving}>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button className="rounded-xl bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500 disabled:opacity-50" onClick={handleSubmit} disabled={saving}>
             {saving ? "Salvando..." : "Lançar"}
           </button>
-          {msg && <span className="align-self-center">{msg}</span>}
+          {msg && <span className="text-sm text-slate-300">{msg}</span>}
         </div>
       </div>
     </div>
