@@ -1,5 +1,5 @@
 // src/components/abastecimento/ModalLancarAbastecimento.jsx
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Timestamp, doc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { addAbastecimento, obterUltimoKmPorVeiculo } from "../../services/abastecimentos";
@@ -27,6 +27,7 @@ export default function ModalLancarAbastecimento({
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState(null);
   const [ultimoKm, setUltimoKm] = useState(null);
+  const isSubmitting = useRef(false);
 
   // Upload imagem
   const [image, setImage] = useState(null);
@@ -112,6 +113,8 @@ export default function ModalLancarAbastecimento({
 
   async function handleSalvar(e) {
     e?.preventDefault?.();
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setErro(null);
     setSalvando(true);
     try {
@@ -166,6 +169,7 @@ export default function ModalLancarAbastecimento({
     } catch (e2) {
       setErro(e2?.message || "Erro ao salvar abastecimento.");
     } finally {
+      isSubmitting.current = false;
       setSalvando(false);
     }
   }

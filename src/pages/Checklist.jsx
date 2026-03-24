@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   collection, addDoc, serverTimestamp, getDocs, query, orderBy, where
 } from "firebase/firestore";
@@ -54,6 +54,8 @@ export default function Checklist({ user, tipoChecklist }) {
   // Modal NOK
   const [modalAberto, setModalAberto] = useState(false);
   const [itemAtual, setItemAtual] = useState("");
+
+  const isSubmitting = useRef(false);
 
   // Restrições
   const [jaEnviouHoje, setJaEnviouHoje] = useState(0);
@@ -284,6 +286,8 @@ if (tipoChecklist === "veiculo") {
       return;
     }
 
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
     setEnviando(true);
 
     try {
@@ -373,8 +377,10 @@ if (tipoChecklist === "veiculo") {
         msg = "Erro ao enviar checklist! O arquivo anexado é grande ou está corrompido.";
       }
       alert(msg + " " + error.message);
+    } finally {
+      isSubmitting.current = false;
+      setEnviando(false);
     }
-    setEnviando(false);
   };
 
   if (!permitido) {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -182,6 +182,7 @@ export default function LancarAbastecimento({
   // ===== Submit =====
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const isSubmitting = useRef(false);
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -207,6 +208,9 @@ export default function LancarAbastecimento({
     if (publicMode && !allowedFrotas.includes(tipoFrotaDoVeiculo)) {
       return setMsg("Você não tem permissão para lançar nessa frota.");
     }
+
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
 
     try {
       setSaving(true);
@@ -264,6 +268,7 @@ export default function LancarAbastecimento({
       console.error(err);
       setMsg("Erro ao salvar. Verifique os dados e tente novamente.");
     } finally {
+      isSubmitting.current = false;
       setSaving(false);
     }
   }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { collection, addDoc, serverTimestamp, query, where, orderBy, getDocs, doc, getDoc, limit } from "firebase/firestore";
 import { db, auth } from "../../services/firebase";
 
@@ -26,6 +26,7 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
 
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
+  const isSubmitting = useRef(false);
 
   // ====== Carregar roles a partir de /usuarios se não vieram por props ======
   useEffect(() => {
@@ -151,6 +152,9 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
       return;
     }
 
+    if (isSubmitting.current) return;
+    isSubmitting.current = true;
+
     try {
       setSaving(true);
 
@@ -192,6 +196,7 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
       console.error(err);
       setMsg("Erro ao salvar. Verifique os dados e tente novamente.");
     } finally {
+      isSubmitting.current = false;
       setSaving(false);
     }
   }
