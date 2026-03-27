@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { collection, addDoc, serverTimestamp, query, where, orderBy, getDocs, doc, getDoc, limit } from "firebase/firestore";
+import { collection, addDoc, setDoc, serverTimestamp, query, where, orderBy, getDocs, doc, getDoc, limit } from "firebase/firestore";
 import { db, auth } from "../../services/firebase";
 
 export default function PublicAbastecimentoForm({ roles: rolesProp = [], user }) {
@@ -27,6 +27,7 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const isSubmitting = useRef(false);
+  const submitIdRef = useRef(crypto.randomUUID());
 
   // ====== Carregar roles a partir de /usuarios se não vieram por props ======
   useEffect(() => {
@@ -162,7 +163,8 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
       const pplNum = Number(precoPorLitro);
       const valorTotal = Number((litrosNum * pplNum).toFixed(2));
 
-      await addDoc(collection(db, "abastecimentos"), {
+      // escrita idempotente — retry de rede com o mesmo submitId não cria duplicata
+      await setDoc(doc(db, "abastecimentos", submitIdRef.current), {
         userId: auth.currentUser.uid,
         userNome: user?.nome || auth.currentUser.email || "",
         userRoles: roles,
@@ -179,6 +181,7 @@ export default function PublicAbastecimentoForm({ roles: rolesProp = [], user })
         criadoEm: serverTimestamp()
       });
 
+      submitIdRef.current = crypto.randomUUID(); // novo ID para o próximo lançamento
       setMsg("Abastecimento lançado com sucesso!");
 
       // limpa

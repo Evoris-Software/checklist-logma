@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   collection,
   addDoc,
+  setDoc,
   serverTimestamp,
   query,
   where,
@@ -183,6 +184,7 @@ export default function LancarAbastecimento({
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const isSubmitting = useRef(false);
+  const submitIdRef = useRef(crypto.randomUUID());
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -223,8 +225,9 @@ export default function LancarAbastecimento({
       const [y, m, d] = String(data).split("-").map(Number);
       const jsDate = new Date(y, m - 1, d, 12, 0, 0, 0);
 
-      // 1) cria o documento sem a imagem
-      const refDoc = await addDoc(collection(db, "abastecimentos"), {
+      // 1) escrita idempotente — mesmo submitId em retry de rede gera o mesmo doc (sem duplicata)
+      const submitId = submitIdRef.current;
+      await setDoc(doc(db, "abastecimentos", submitId), {
         userId: uid,
         tipoFrota: tipoFrotaDoVeiculo,
         veiculoId: veiculoSel.id,
@@ -244,13 +247,14 @@ export default function LancarAbastecimento({
 
       // 2) upload opcional da imagem
       if (image) {
-        const url = await uploadImage(uid, refDoc.id, image);
-        await updateDoc(doc(db, "abastecimentos", refDoc.id), {
+        const url = await uploadImage(uid, submitId, image);
+        await updateDoc(doc(db, "abastecimentos", submitId), {
           imagem: url,
           updatedAt: serverTimestamp(),
         });
       }
 
+      submitIdRef.current = crypto.randomUUID(); // novo ID para o próximo lançamento
       setMsg("Abastecimento lançado com sucesso!");
       setVeiculoId("");
       setVeiculoSel(null);

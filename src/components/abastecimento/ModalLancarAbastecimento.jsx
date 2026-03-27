@@ -28,6 +28,7 @@ export default function ModalLancarAbastecimento({
   const [erro, setErro] = useState(null);
   const [ultimoKm, setUltimoKm] = useState(null);
   const isSubmitting = useRef(false);
+  const submitIdRef = useRef(crypto.randomUUID());
 
   // Upload imagem
   const [image, setImage] = useState(null);
@@ -69,6 +70,7 @@ export default function ModalLancarAbastecimento({
     setErro(null);
     setSalvando(false);
     setImage(null);
+    submitIdRef.current = crypto.randomUUID(); // novo ID a cada abertura do modal
   }, [open, frotaSelecionada]);
 
   const veiculosFiltrados = useMemo(() => {
@@ -138,8 +140,9 @@ export default function ModalLancarAbastecimento({
 
       const vSel = veiculos.find((vv) => vv.id === form.veiculoId);
 
-      // 1) cria o doc via serviço (aceita campos extras como 'imagem')
+      // 1) cria o doc via serviço — id idempotente previne duplicatas por retry de rede
       const docId = await addAbastecimento({
+        id: submitIdRef.current,
         userId: uid,
         veiculoId: form.veiculoId,
         placa: (vSel?.placa || "").toUpperCase(),

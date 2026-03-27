@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import {
-  collection, addDoc, serverTimestamp, getDocs, query, orderBy, where
+  collection, setDoc, doc, serverTimestamp, getDocs, query, orderBy, where
 } from "firebase/firestore";
 import { db, storage } from "../services/firebase";
 import { useNavigate } from "react-router-dom";
@@ -360,8 +360,12 @@ if (tipoChecklist === "veiculo") {
         };
       }
 
-      await addDoc(collection(db, "checklists"), base);
+      // ID determinístico: impede duplicatas por retry de rede (mesmo uid+tipo+item+dia = mesmo doc)
+      const dataHoje = new Date().toISOString().slice(0, 10);
+      const submitId = `cklist_${user.uid}_${tipoChecklist}_${itemSelecionado}_${dataHoje}`;
+      await setDoc(doc(db, "checklists", submitId), base);
 
+      setJaEnviouHoje(prev => prev + 1);
       alert("Checklist enviado!");
       setItemSelecionado("");
       setKmAtual("");

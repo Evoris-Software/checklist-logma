@@ -50,6 +50,7 @@ function toTimestamp(anyDate: unknown): Timestamp {
 }
 
 export interface CriarAbastecimentoPayload {
+  id?: string;        // opcional: se informado, usa setDoc (idempotente) em vez de addDoc
   veiculoId: string;
   placa?: string;
   frotaNumero?: string;
@@ -67,6 +68,7 @@ export interface CriarAbastecimentoPayload {
 
 export async function criarAbastecimento(payload: CriarAbastecimentoPayload): Promise<string> {
   const {
+    id: docIdForcado,
     veiculoId,
     placa = "",
     frotaNumero = "",
@@ -116,6 +118,11 @@ export async function criarAbastecimento(payload: CriarAbastecimentoPayload): Pr
     updatedAt: serverTimestamp(),
   };
 
+  // Escrita idempotente: se um docId foi fornecido, usa setDoc para evitar duplicatas por retry
+  if (docIdForcado) {
+    await setDoc(doc(db, COLLECTION, docIdForcado), docData);
+    return docIdForcado;
+  }
   const ref = await addDoc(collection(db, COLLECTION), docData);
   return ref.id;
 }
